@@ -1,0 +1,196 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Function to check if user is delivery boy
+    function isDelivery() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'delivery';
+    }
+
+    // Function to check if user is cashier
+    function isCashier() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'cashier';
+    }
+
+    // Function to check if user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Function to check if user is accessing their own document
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    // users collection
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin() || isDelivery() || isCashier() || (isAuth() && resource.data.role == 'delivery');
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // addresses collection
+    match /addresses/{addressId} {
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin() || isDelivery());
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // subscriptionPlans collection
+    match /subscriptionPlans/{planId} {
+      // Anyone can read active plans, admins can write
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // subscriptions collection
+    match /subscriptions/{subId} {
+      // Users can see their own subscriptions, admins can read/write all
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin(); // Usually written by backend function, if direct then admin
+    }
+
+    // subscriptionBookings collection
+    match /subscriptionBookings/{bookingId} {
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin() || isDelivery());
+      allow update: if isAdmin() || 
+                    (isDelivery() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
+                    (isAuth() && resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviewedItems']));
+      allow write: if isAdmin();
+    }
+
+    // menus
+    match /subscriptionMenu/{menuId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /mainMenu/{menuId} {
+      allow read: if true;
+      // Allow customers to ONLY update the average rating and total ratings when they leave a review
+      allow update: if isAdmin() || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['averageRating', 'totalRatings']));
+      allow write: if isAdmin();
+    }
+    
+    match /subscriptionCategories/{catId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /categories/{catId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /dailyMenus/{menuId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // coupons collection
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow create: if isAdmin() || (isAuth() && request.resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // freeFoods collection
+    match /freeFoods/{foodId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // rewardTiers collection
+    match /rewardTiers/{tierId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // userRewards collection
+    match /userRewards/{rewardId} {
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // instantOrders
+    match /instantOrders/{orderId} {
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin() || isDelivery());
+      allow update: if isAdmin() || 
+                    (isDelivery() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
+                    (isAuth() && resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviewedItems']));
+      allow write: if isAdmin();
+    }
+    
+    // dineInOrders
+    match /dineInOrders/{orderId} {
+      allow read: if true;
+      allow update: if isAdmin() || isCashier();
+      allow write: if isAdmin();
+    }
+    
+    // deliveryBoys & deliveryAssignments
+    match /deliveryBoys/{deliveryBoyId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /deliveryAssignments/{assignmentId} {
+      allow read: if isAuth() && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'delivery' || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /deliverySlots/{slotId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /appSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // reviews collection
+    match /reviews/{reviewId} {
+      allow read: if true;
+      // Customers can create their own reviews
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // landingBanners collection
+    match /landingBanners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // gallery collection
+    match /gallery/{imageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    // cateringInquiries collection
+    match /cateringInquiries/{inquiryId} {
+      allow create: if true; // anyone can submit an inquiry
+      allow read, update, delete: if isAdmin();
+    }
+
+    // eventInquiries collection
+    match /eventInquiries/{inquiryId} {
+      allow create: if true; // anyone can submit an inquiry
+      allow read, update, delete: if isAdmin();
+    }
+    // referralHistory collection
+    match /referralHistory/{refId} {
+      // Anyone can create during signup
+      allow create: if true;
+      // Allow authenticated users to query their history
+      allow read: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+  }
+}
