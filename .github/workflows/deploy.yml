@@ -27,7 +27,7 @@ jobs:
             npm install
 
             echo "Restarting PM2..."
-            pm2 restart vrindavan-api
+            pm2 restart vrindavan-api --update-env
 
             echo "Building frontend..."
             cd ../frontend
