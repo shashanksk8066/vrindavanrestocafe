@@ -6,8 +6,9 @@ import { Mail, Lock, LogIn, Loader2, ShieldCheck } from 'lucide-react';
 const AdminLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { login, error, loading } = useAuthStore();
+    const { login, resetPassword, error, loading } = useAuthStore();
     const navigate = useNavigate();
+    const [resetMsg, setResetMsg] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,6 +18,21 @@ const AdminLogin = () => {
             navigate('/admin');
         } catch (err) {
             console.error('Admin login failed', err);
+        }
+    };
+
+    const handleForgotPassword = async (e) => {
+        e.preventDefault();
+        setResetMsg('');
+        if (!email) {
+            alert('Please enter your admin email address first.');
+            return;
+        }
+        try {
+            await resetPassword(email);
+            setResetMsg('Password reset link sent! Check your email.');
+        } catch (err) {
+            console.error('Password reset failed', err);
         }
     };
 
@@ -48,6 +64,12 @@ const AdminLogin = () => {
                         </div>
                     )}
 
+                    {resetMsg && (
+                        <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-xl mb-6 text-sm flex items-start shadow-sm">
+                            <span className="block sm:inline">{resetMsg}</span>
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Admin Email</label>
@@ -69,6 +91,7 @@ const AdminLogin = () => {
                         <div>
                             <div className="flex items-center justify-between mb-1.5">
                                 <label className="block text-sm font-semibold text-gray-700">Password</label>
+                                <button type="button" onClick={handleForgotPassword} className="text-xs font-semibold text-amber-600 hover:text-amber-500 transition-colors">Forgot password?</button>
                             </div>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">

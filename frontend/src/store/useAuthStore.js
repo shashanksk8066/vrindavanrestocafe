@@ -4,7 +4,8 @@ import {
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
     signOut,
-    onAuthStateChanged
+    onAuthStateChanged,
+    sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -12,7 +13,8 @@ const useAuthStore = create((set) => ({
     user: null,
     userData: null,
     role: null, // 'customer', 'admin', 'delivery'
-    loading: true,
+    loading: false,
+    isAuthReady: false,
     error: null,
 
     initAuth: () => {
@@ -32,17 +34,17 @@ const useAuthStore = create((set) => ({
                             userData.referralCode = newCode;
                         }
                         
-                        set({ user: firebaseUser, userData: userData, role: userData.role || 'customer', loading: false });
+                        set({ user: firebaseUser, userData: userData, role: userData.role || 'customer', isAuthReady: true });
                     } else {
                         // Fallback if doc doesn't exist yet
-                        set({ user: firebaseUser, role: 'customer', loading: false });
+                        set({ user: firebaseUser, role: 'customer', isAuthReady: true });
                     }
                 } catch (error) {
                     console.error("Error fetching user role", error);
-                    set({ user: firebaseUser, role: 'customer', loading: false });
+                    set({ user: firebaseUser, role: 'customer', isAuthReady: true });
                 }
             } else {
-                set({ user: null, role: null, loading: false });
+                set({ user: null, role: null, isAuthReady: true });
             }
         });
     },
@@ -128,12 +130,23 @@ const useAuthStore = create((set) => ({
     },
 
     logout: async () => {
-        set({ loading: true });
+        set({ loading: true, error: null });
         try {
             await signOut(auth);
             set({ user: null, userData: null, role: null, loading: false });
         } catch (error) {
             set({ error: error.message, loading: false });
+        }
+    },
+
+    resetPassword: async (email) => {
+        set({ loading: true, error: null });
+        try {
+            await sendPasswordResetEmail(auth, email);
+            set({ loading: false });
+        } catch (error) {
+            set({ error: error.message, loading: false });
+            throw error;
         }
     }
 }));

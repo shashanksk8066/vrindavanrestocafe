@@ -6,17 +6,32 @@ import { Mail, Lock, LogIn, Loader2, Truck } from 'lucide-react';
 const DeliveryLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { login, error, loading } = useAuthStore();
+    const { login, resetPassword, error, loading } = useAuthStore();
+    const [resetMsg, setResetMsg] = useState('');
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Strictly enforce delivery role
             await login(email, password, 'delivery');
             navigate('/delivery');
         } catch (err) {
             console.error('Delivery login failed', err);
+        }
+    };
+
+    const handleForgotPassword = async (e) => {
+        e.preventDefault();
+        setResetMsg('');
+        if (!email) {
+            alert('Please enter your delivery email address first.');
+            return;
+        }
+        try {
+            await resetPassword(email);
+            setResetMsg('Password reset link sent! Check your email.');
+        } catch (err) {
+            console.error('Password reset failed', err);
         }
     };
 
@@ -69,6 +84,7 @@ const DeliveryLogin = () => {
                         <div>
                             <div className="flex items-center justify-between mb-1.5">
                                 <label className="block text-sm font-semibold text-gray-700">Password</label>
+                                <button type="button" onClick={handleForgotPassword} className="text-xs font-semibold text-amber-600 hover:text-amber-500 transition-colors">Forgot password?</button>
                             </div>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">

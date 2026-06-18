@@ -1,29 +1,38 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
-import { Mail, Lock, Loader2, Wallet } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
 
 const CashierLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    
+    const [resetMsg, setResetMsg] = useState('');
+    const { login, resetPassword, error, loading, setError } = useAuthStore();
     const navigate = useNavigate();
-    const { login } = useAuthStore();
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
-        setLoading(true);
-
         try {
             await login(email, password, 'cashier');
             navigate('/cashier');
         } catch (err) {
-            setError(err.message || "Login failed");
-        } finally {
-            setLoading(false);
+            console.error('Cashier login failed', err);
+        }
+    };
+
+    const handleForgotPassword = async (e) => {
+        e.preventDefault();
+        setResetMsg('');
+        if (!email) {
+            alert('Please enter your cashier email address first.');
+            return;
+        }
+        try {
+            await resetPassword(email);
+            setResetMsg('Password reset link sent! Check your email.');
+        } catch (err) {
+            console.error('Password reset failed', err);
         }
     };
 
@@ -41,8 +50,14 @@ const CashierLogin = () => {
 
                 <form onSubmit={handleLogin} className="space-y-5">
                     {error && (
-                        <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold border border-red-100 text-center">
-                            {error}
+                        <div className="bg-red-50 border-l-4 border-red-500 text-red-600 p-4 rounded-xl mb-6 text-sm flex items-start shadow-sm">
+                            <span className="block sm:inline">{error}</span>
+                        </div>
+                    )}
+
+                    {resetMsg && (
+                        <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-xl mb-6 text-sm flex items-start shadow-sm">
+                            <span className="block sm:inline">{resetMsg}</span>
                         </div>
                     )}
                     

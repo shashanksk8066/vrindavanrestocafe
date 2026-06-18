@@ -25,11 +25,14 @@ frontend/.env
 backend/serviceAccountKey.json
 frontend/src/config/firebase.js
 
+
+
 # Build outputs
 frontend/dist/
 frontend/build/
 backend/dist/
 backend/build/
+public/uploads/
 
 # Firebase specific
 .firebase/

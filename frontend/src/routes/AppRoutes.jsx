@@ -14,6 +14,10 @@ const AdminCategories = React.lazy(() => import('../pages/admin/Categories'));
 const AdminOrders = React.lazy(() => import('../pages/admin/Orders'));
 const AdminUsers = React.lazy(() => import('../pages/admin/Users'));
 const AdminDeliveries = React.lazy(() => import('../pages/admin/Deliveries'));
+const ContactUs = React.lazy(() => import('../pages/legal/ContactUs'));
+const TermsAndConditions = React.lazy(() => import('../pages/legal/TermsAndConditions'));
+const PrivacyPolicy = React.lazy(() => import('../pages/legal/PrivacyPolicy'));
+const RefundPolicy = React.lazy(() => import('../pages/legal/RefundPolicy'));
 const AdminCoupons = React.lazy(() => import('../pages/admin/Coupons'));
 const AdminRewards = React.lazy(() => import('../pages/admin/AdminRewards'));
 const AdminFreeFoods = React.lazy(() => import('../pages/admin/FreeFoods'));
@@ -62,10 +66,10 @@ import useAuthStore from '../store/useAuthStore';
 // No more dummy placeholders needed
 
 const AppRoutes = () => {
-    const { user, role, loading } = useAuthStore();
+    const { user, role, isAuthReady } = useAuthStore();
 
     // Basic loading state for the initial auth check
-    if (loading) {
+    if (!isAuthReady) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
@@ -115,6 +119,12 @@ const AppRoutes = () => {
                     <Route path="referrals" element={<CustomerReferrals />} />
                 </Route>
             </Route>
+                {/* Legal Pages */}
+                <Route path="/contact" element={<ContactUs />} />
+                <Route path="/terms" element={<TermsAndConditions />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/refund" element={<RefundPolicy />} />
+
 
             {/* Admin Routes */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
