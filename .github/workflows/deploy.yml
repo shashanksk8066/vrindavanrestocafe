@@ -8,7 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Deploy Application
         uses: appleboy/ssh-action@v1.0.3
@@ -17,15 +16,23 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -e
+
             cd /var/www/vrindavanrestocafe
 
             git pull origin main
 
+            echo "Installing backend dependencies..."
             cd backend
             npm install
 
+            echo "Restarting PM2..."
             pm2 restart vrindavan-api
 
+            echo "Building frontend..."
             cd ../frontend
             npm install
             npm run build
+
+            echo "Deployment completed successfully!"
+```
