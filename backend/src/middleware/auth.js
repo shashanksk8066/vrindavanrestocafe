@@ -26,8 +26,12 @@ const verifyToken = async (req, res, next) => {
 
         next();
     } catch (error) {
-        console.error('Auth Error:', error);
-        return res.status(403).json({ success: false, message: 'Unauthorized: Invalid token' });
+        console.error('AUTH ERROR:', error);
+        return res.status(403).json({ 
+            success: false, 
+            debug: error.message,
+            stack: error.stack
+        });
     }
 };
 

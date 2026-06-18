@@ -22,6 +22,8 @@ frontend/node_modules/
 .env.production.local
 backend/.env
 frontend/.env
+backend/serviceAccountKey.json
+frontend/src/config/firebase.js
 
 # Build outputs
 frontend/dist/

@@ -57,7 +57,7 @@ const isWithinBookingWindow = (openStr, cutoffStr) => {
 
 const CLIENT_ID = process.env.PHONEPE_CLIENT_ID;
 const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://vrindavanrestocafe.com';
 
 const AUTH_URL = process.env.PHONEPE_ENV === 'UAT' 
     ? 'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token' 
