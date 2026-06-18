@@ -20,7 +20,8 @@ jobs:
 
             cd /var/www/vrindavanrestocafe
 
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
 
             echo "Installing backend dependencies..."
             cd backend
