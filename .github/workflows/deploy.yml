@@ -9,7 +9,6 @@ jobs:
 deploy:
 runs-on: ubuntu-latest
 
-```
 steps:
   - name: Deploy Application
     uses: appleboy/ssh-action@v1.0.3
@@ -30,4 +29,3 @@ steps:
         cd ../frontend
         npm install
         npm run build
-```
