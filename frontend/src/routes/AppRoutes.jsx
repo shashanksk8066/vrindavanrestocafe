@@ -1,61 +1,61 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
-import Login from '../pages/auth/Login';
-import Signup from '../pages/auth/Signup';
-import AdminLogin from '../pages/admin/AdminLogin';
-import DeliveryLogin from '../pages/delivery/DeliveryLogin';
+const Login = React.lazy(() => import('../pages/auth/Login'));
+const Signup = React.lazy(() => import('../pages/auth/Signup'));
+const AdminLogin = React.lazy(() => import('../pages/admin/AdminLogin'));
+const DeliveryLogin = React.lazy(() => import('../pages/delivery/DeliveryLogin'));
 import AdminLayout from '../layouts/AdminLayout';
-import AdminDashboard from '../pages/admin/Dashboard';
-import AdminPlans from '../pages/admin/Plans';
-import AdminMenus from '../pages/admin/Menus';
-import DailySchedule from '../pages/admin/DailySchedule';
-import AdminCategories from '../pages/admin/Categories';
-import AdminOrders from '../pages/admin/Orders';
-import AdminUsers from '../pages/admin/Users';
-import AdminDeliveries from '../pages/admin/Deliveries';
-import AdminCoupons from '../pages/admin/Coupons';
-import AdminRewards from '../pages/admin/AdminRewards';
-import AdminFreeFoods from '../pages/admin/FreeFoods';
-import AdminSettings from '../pages/admin/Settings';
-import AdminReferrals from '../pages/admin/AdminReferrals';
-import AdminSubscriptionBookings from '../pages/admin/SubscriptionBookings';
-import AdminInstantOrders from '../pages/admin/InstantOrders';
-import AdminReviews from '../pages/admin/Reviews';
-import AdminLiveOrders from '../pages/admin/AdminLiveOrders';
-import AdminCashiers from '../pages/admin/AdminCashiers';
-import AdminBanners from '../pages/admin/AdminBanners';
-import AdminGallery from '../pages/admin/AdminGallery';
-import AdminCatering from '../pages/admin/AdminCatering';
-import AdminEvents from '../pages/admin/AdminEvents';
+const AdminDashboard = React.lazy(() => import('../pages/admin/Dashboard'));
+const AdminPlans = React.lazy(() => import('../pages/admin/Plans'));
+const AdminMenus = React.lazy(() => import('../pages/admin/Menus'));
+const DailySchedule = React.lazy(() => import('../pages/admin/DailySchedule'));
+const AdminCategories = React.lazy(() => import('../pages/admin/Categories'));
+const AdminOrders = React.lazy(() => import('../pages/admin/Orders'));
+const AdminUsers = React.lazy(() => import('../pages/admin/Users'));
+const AdminDeliveries = React.lazy(() => import('../pages/admin/Deliveries'));
+const AdminCoupons = React.lazy(() => import('../pages/admin/Coupons'));
+const AdminRewards = React.lazy(() => import('../pages/admin/AdminRewards'));
+const AdminFreeFoods = React.lazy(() => import('../pages/admin/FreeFoods'));
+const AdminSettings = React.lazy(() => import('../pages/admin/Settings'));
+const AdminReferrals = React.lazy(() => import('../pages/admin/AdminReferrals'));
+const AdminSubscriptionBookings = React.lazy(() => import('../pages/admin/SubscriptionBookings'));
+const AdminInstantOrders = React.lazy(() => import('../pages/admin/InstantOrders'));
+const AdminReviews = React.lazy(() => import('../pages/admin/Reviews'));
+const AdminLiveOrders = React.lazy(() => import('../pages/admin/AdminLiveOrders'));
+const AdminCashiers = React.lazy(() => import('../pages/admin/AdminCashiers'));
+const AdminBanners = React.lazy(() => import('../pages/admin/AdminBanners'));
+const AdminGallery = React.lazy(() => import('../pages/admin/AdminGallery'));
+const AdminCatering = React.lazy(() => import('../pages/admin/AdminCatering'));
+const AdminEvents = React.lazy(() => import('../pages/admin/AdminEvents'));
 
-import CashierLogin from '../pages/cashier/CashierLogin';
+const CashierLogin = React.lazy(() => import('../pages/cashier/CashierLogin'));
 import CashierLayout from '../layouts/CashierLayout';
 
 import CustomerLayout from '../layouts/CustomerLayout';
-import CustomerHome from '../pages/customer/Home';
-import CustomerMenu from '../pages/customer/Menu';
-import CustomerPlans from '../pages/customer/Plans';
-import CustomerOrders from '../pages/customer/Orders';
-import CustomerProfile from '../pages/customer/Profile';
-import CustomerRewards from '../pages/customer/CustomerRewards';
-import CustomerReferrals from '../pages/customer/CustomerReferrals';
-import CustomerCheckout from '../pages/customer/Checkout';
-import PlanCheckout from '../pages/customer/PlanCheckout';
-import BookMeal from '../pages/customer/BookMeal';
-import PaymentCallback from '../pages/customer/PaymentCallback';
-import LandingPage from '../pages/public/LandingPage';
-import GalleryPage from '../pages/public/GalleryPage';
-import Catering from '../pages/customer/Catering';
-import Events from '../pages/customer/Events';
-import AboutUs from '../pages/customer/AboutUs';
+const CustomerHome = React.lazy(() => import('../pages/customer/Home'));
+const CustomerMenu = React.lazy(() => import('../pages/customer/Menu'));
+const CustomerPlans = React.lazy(() => import('../pages/customer/Plans'));
+const CustomerOrders = React.lazy(() => import('../pages/customer/Orders'));
+const CustomerProfile = React.lazy(() => import('../pages/customer/Profile'));
+const CustomerRewards = React.lazy(() => import('../pages/customer/CustomerRewards'));
+const CustomerReferrals = React.lazy(() => import('../pages/customer/CustomerReferrals'));
+const CustomerCheckout = React.lazy(() => import('../pages/customer/Checkout'));
+const PlanCheckout = React.lazy(() => import('../pages/customer/PlanCheckout'));
+const BookMeal = React.lazy(() => import('../pages/customer/BookMeal'));
+const PaymentCallback = React.lazy(() => import('../pages/customer/PaymentCallback'));
+const LandingPage = React.lazy(() => import('../pages/public/LandingPage'));
+const GalleryPage = React.lazy(() => import('../pages/public/GalleryPage'));
+const Catering = React.lazy(() => import('../pages/customer/Catering'));
+const Events = React.lazy(() => import('../pages/customer/Events'));
+const AboutUs = React.lazy(() => import('../pages/customer/AboutUs'));
 
-import DeliveryDashboard from '../pages/delivery/Dashboard';
+const DeliveryDashboard = React.lazy(() => import('../pages/delivery/Dashboard'));
 
 // Dine-In
-import DineInMenu from '../pages/customer/DineInMenu';
-import DineInCheckout from '../pages/customer/DineInCheckout';
-import DineInTrack from '../pages/customer/DineInTrack';
+const DineInMenu = React.lazy(() => import('../pages/customer/DineInMenu'));
+const DineInCheckout = React.lazy(() => import('../pages/customer/DineInCheckout'));
+const DineInTrack = React.lazy(() => import('../pages/customer/DineInTrack'));
 
 import useAuthStore from '../store/useAuthStore';
 
@@ -74,7 +74,12 @@ const AppRoutes = () => {
     }
 
     return (
-        <Routes>
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        }>
+            <Routes>
             {/* Public Routes */}
             <Route path="/welcome" element={<LandingPage />} />
             <Route path="/gallery" element={<GalleryPage />} />
@@ -157,6 +162,7 @@ const AppRoutes = () => {
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
     );
 };
 

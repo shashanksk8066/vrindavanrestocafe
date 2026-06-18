@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../../config/firebase';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { ArrowRight, Utensils, Star, ShoppingBag, Plus, Minus, Info, ChevronDown, ChevronUp, Search } from 'lucide-react';
@@ -9,6 +9,7 @@ import LoginPopup from '../../components/LoginPopup';
 const Menu = () => {
     const { user } = useAuthStore();
     const navigate = useNavigate();
+    const location = useLocation();
     const [categories, setCategories] = useState([]);
     const [mainMenu, setMainMenu] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -160,10 +161,14 @@ const Menu = () => {
     });
 
     useEffect(() => {
-        if (!searchQuery && !selectedCategory && sortedMenuEntries.length > 0) {
+        if (location.state?.category) {
+            setSelectedCategory(location.state.category);
+            // Clear the state so it doesn't force this category on subsequent navigation within the menu
+            window.history.replaceState({}, document.title);
+        } else if (!searchQuery && !selectedCategory && sortedMenuEntries.length > 0) {
             setSelectedCategory(sortedMenuEntries[0][0]);
         }
-    }, [sortedMenuEntries, selectedCategory, searchQuery]);
+    }, [sortedMenuEntries, selectedCategory, searchQuery, location.state]);
 
     if (loading) {
         return (
@@ -234,7 +239,7 @@ const Menu = () => {
                                             src={(cat.imageUrl || cat.image)} 
                                             alt={cat.name} 
                                             className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 p-1" 
-                                        />
+                                        loading="lazy" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-400 group-hover:text-orange-400 transition-colors">
                                             <Utensils className="w-8 h-8 md:w-10 md:h-10" />
@@ -264,7 +269,7 @@ const Menu = () => {
                                             <div key={item.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex space-x-4 hover:shadow-md transition-shadow">
                                                 <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden bg-gray-100 relative">
                                                     {item.imageUrl ? (
-                                                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
                                                     ) : (
                                                         <Utensils className="w-8 h-8 text-gray-300 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                                                     )}

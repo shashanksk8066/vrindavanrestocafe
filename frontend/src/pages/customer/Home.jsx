@@ -20,7 +20,7 @@ const Home = () => {
     const [showLoginPopup, setShowLoginPopup] = useState(false);
     const [showDineInPopup, setShowDineInPopup] = useState(false);
     const [tableNumberInput, setTableNumberInput] = useState('');
-    const [minMealPrice, setMinMealPrice] = useState(49);
+    const [minMealPrice, setMinMealPrice] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [gallery, setGallery] = useState([]);
     const reviewsScrollRef = useRef(null);
@@ -82,8 +82,10 @@ const Home = () => {
                     const plan = { id: doc.id, ...doc.data() };
                     plansData.push(plan);
                     if (plan.price && plan.mealCount) {
-                        const pricePerMeal = Math.round(plan.price / plan.mealCount);
-                        if (pricePerMeal < minPrice) minPrice = pricePerMeal;
+                        const perMeal = Math.floor(plan.price / plan.mealCount);
+                        if (perMeal < minPrice) minPrice = perMeal;
+                    } else if (plan.price) {
+                        if (plan.price < minPrice) minPrice = plan.price;
                     }
                 });
                 setPlansList(plansData);
@@ -580,7 +582,7 @@ const Home = () => {
                                 src="/bowl.png" 
                                 alt="Premium Daily Meal" 
                                 className="w-44 sm:w-56 object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.3)] hover:scale-105 transition-transform duration-500"
-                            />
+                            loading="lazy" />
                             <div className="mt-1 bg-white border border-orange-200 shadow-sm rounded-full py-1 px-3 text-center transform -rotate-2">
                                 {activeSub ? (
                                     <>
@@ -590,7 +592,7 @@ const Home = () => {
                                 ) : (
                                     <>
                                         <span className="text-[8px] font-extrabold text-gray-500 uppercase tracking-widest block leading-none mb-0.5">Starting at just</span>
-                                        <span className="text-[18px] font-black text-[#FF6B00] leading-none">₹{minMealPrice}</span>
+                                        <span className="text-[18px] font-black text-[#FF6B00] leading-none">₹{minMealPrice || '...'}</span>
                                     </>
                                 )}
                             </div>
@@ -684,7 +686,7 @@ const Home = () => {
                             src="/bowl.png" 
                             alt="Premium Daily Meal" 
                             className="w-80 xl:w-[28rem] object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.3)] hover:scale-105 transition-transform duration-500 pointer-events-auto"
-                        />
+                        loading="lazy" />
                     </div>
 
                     {/* DESKTOP ONLY: Spacer for absolute image */}
@@ -799,13 +801,7 @@ const Home = () => {
                             <div 
                                 key={cat.id} 
                                 className="flex flex-col items-center shrink-0 cursor-pointer group snap-start"
-                                onClick={() => {
-                                    const el = document.getElementById(`category-${cat.name.replace(/\s+/g, '-')}`);
-                                    if (el) {
-                                        const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                                        window.scrollTo({ top: y, behavior: 'smooth' });
-                                    }
-                                }}
+                                onClick={() => navigate('/menu', { state: { category: cat.name } })}
                             >
                                 <div className="w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 transition-all flex items-center justify-center">
                                     {cat.imageUrl || cat.image ? (
@@ -813,7 +809,7 @@ const Home = () => {
                                             src={(cat.imageUrl || cat.image)} 
                                             alt={cat.name} 
                                             className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" 
-                                        />
+                                        loading="lazy" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-400">
                                             <Utensils className="w-12 h-12" />
@@ -848,7 +844,7 @@ const Home = () => {
                                 <div key={item.id} className={`bg-white border border-orange-100 rounded-3xl p-4 shadow-sm space-x-4 hover:shadow-md transition-shadow relative ${!showAllSpecials && index === 3 ? 'hidden md:flex' : 'flex'}`}>
                                     <div className="w-28 h-28 shrink-0 rounded-2xl overflow-hidden bg-gray-100 relative shadow-sm">
                                         {item.imageUrl ? (
-                                            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
                                         ) : (
                                             <Utensils className="w-8 h-8 text-gray-300 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                                         )}
@@ -941,7 +937,7 @@ const Home = () => {
                             className="flex flex-col items-center shrink-0 cursor-pointer group snap-start"
                         >
                             <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 transition-all flex items-center justify-center mb-2">
-                                <img src="/dine-in-card.png" alt="Dine In" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md" />
+                                <img src="/dine-in-card.png" alt="Dine In" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md" loading="lazy" />
                             </div>
                             <h4 className="text-[13px] sm:text-sm md:text-base font-bold text-gray-800 text-center tracking-tight">Dine In</h4>
                         </div>
@@ -952,7 +948,7 @@ const Home = () => {
                             className="flex flex-col items-center shrink-0 cursor-pointer group snap-start"
                         >
                             <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 transition-all flex items-center justify-center mb-2">
-                                <img src="/catering-card.png" alt="Catering" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md" />
+                                <img src="/catering-card.png" alt="Catering" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md" loading="lazy" />
                             </div>
                             <h4 className="text-[13px] sm:text-sm md:text-base font-bold text-gray-800 text-center tracking-tight">Catering</h4>
                         </div>
@@ -963,7 +959,7 @@ const Home = () => {
                             className="flex flex-col items-center shrink-0 cursor-pointer group snap-start"
                         >
                             <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 transition-all flex items-center justify-center mb-2">
-                                <img src="/events-card.png" alt="Book Event" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md" />
+                                <img src="/events-card.png" alt="Book Event" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md" loading="lazy" />
                             </div>
                             <h4 className="text-[13px] sm:text-sm md:text-base font-bold text-gray-800 text-center tracking-tight">Book Event</h4>
                         </div>
@@ -980,7 +976,7 @@ const Home = () => {
                             className="flex flex-col items-center shrink-0 cursor-pointer group snap-start"
                         >
                             <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 transition-all flex items-center justify-center mb-2">
-                                <img src="/rewards-card.png" alt="Rewards" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md" />
+                                <img src="/rewards-card.png" alt="Rewards" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md" loading="lazy" />
                             </div>
                             <h4 className="text-[13px] sm:text-sm md:text-base font-bold text-gray-800 text-center tracking-tight">Rewards</h4>
                         </div>

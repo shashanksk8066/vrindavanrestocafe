@@ -2,9 +2,74 @@ const { db, admin } = require('../config/firebaseAdmin');
 const crypto = require('crypto');
 const moment = require('moment'); // We should install moment for time checking
 
+const Razorpay = require('razorpay');
 
+let razorpayInstance = null;
+if (process.env.RAZORPAY_KEY && process.env.RAZORPAY_SECRET) {
+    razorpayInstance = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY,
+        key_secret: process.env.RAZORPAY_SECRET,
+    });
+}
 
+const getGateways = (req, res) => {
+    res.status(200).json({
+        success: true,
+        gateways: {
+            phonepe: process.env.ENABLE_PHONEPE === 'true',
+            razorpay: process.env.ENABLE_RAZORPAY === 'true'
+        }
+    });
+};
 
+const createRazorpayOrder = async (amountInPaise, transactionId) => {
+    if (!razorpayInstance) throw new Error('Razorpay is not configured');
+    const options = {
+        amount: amountInPaise,
+        currency: "INR",
+        receipt: transactionId
+    };
+    return await razorpayInstance.orders.create(options);
+};
+
+const { validatePaymentVerification } = require('razorpay/dist/utils/razorpay-utils');
+
+const verifyRazorpaySignature = (order_id, payment_id, signature) => {
+    try {
+        return validatePaymentVerification(
+            { order_id: order_id, payment_id: payment_id },
+            signature,
+            process.env.RAZORPAY_SECRET
+        );
+    } catch (error) {
+        console.error("Signature Validation Error:", error);
+        return false;
+    }
+};
+
+const checkPaymentStatus = async (req, transactionId) => {
+    const { gateway, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+    if (gateway === 'razorpay') {
+        if (!verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature)) {
+            return { success: false, message: 'Invalid Razorpay signature' };
+        }
+        return { success: true };
+    } else {
+        const token = await getPhonePeToken();
+        const response = await fetch(`${PG_BASE_URL}/checkout/v2/order/${transactionId}/status`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `O-Bearer ${token}`
+            }
+        });
+        const data = await response.json();
+        if (data.state === 'COMPLETED' || data.state === 'PAYMENT_SUCCESS') {
+            return { success: true };
+        }
+        return { success: false, data };
+    }
+};
 // Helper to check if current time is within booking window in IST
 const isWithinBookingWindow = (openStr, cutoffStr) => {
     if (!cutoffStr) return true;
@@ -193,7 +258,7 @@ const releaseCoupon = async (req, res) => {
 
 const createPayment = async (req, res) => {
     try {
-        const { planId, groupSize = 1, couponCode, sessionId } = req.body;
+        const { planId, groupSize = 1, couponCode, sessionId, gateway } = req.body;
         const { uid } = req.user;
 
         const planDoc = await db.collection('subscriptionPlans').doc(planId).get();
@@ -235,6 +300,40 @@ const createPayment = async (req, res) => {
 
         const amountInPaise = Math.round(finalAmount * 100);
         const transactionId = 'T' + Date.now();
+
+        // Save pending state securely
+        await db.collection('pendingBookings').doc(transactionId).set({
+            transactionId,
+            userId: uid,
+            planId: planId,
+            planName: plan.name,
+            mealType: plan.mealType,
+            mealCount: plan.mealCount,
+            originalAmount: plan.price * groupSize,
+            discountApplied: ((plan.price * groupSize) - finalAmount) || 0,
+            couponCode: couponCode || null,
+            amount: finalAmount,
+            startDate: req.body.startDate || null,
+            addressId: req.body.addressId || null,
+            sessionId: sessionId || null,
+            groupSize: groupSize,
+            status: 'PENDING',
+            createdAt: new Date().toISOString()
+        });
+
+        if (gateway === 'razorpay' && process.env.ENABLE_RAZORPAY === 'true') {
+            const order = await createRazorpayOrder(amountInPaise, transactionId);
+            return res.status(200).json({ 
+                success: true, 
+                gateway: 'razorpay', 
+                orderId: order.id, 
+                amount: amountInPaise, 
+                transactionId, 
+                key: process.env.RAZORPAY_KEY 
+            });
+        }
+
+        // PhonePe fallback
         const token = await getPhonePeToken();
 
         const payload = {
@@ -262,7 +361,7 @@ const createPayment = async (req, res) => {
         if (data.redirectUrl || (data.paymentUrls && data.paymentUrls.redirectUrl) || data.state === 'PENDING') {
             const redirectUrl = data.redirectUrl || (data.paymentUrls && data.paymentUrls.redirectUrl);
             if (redirectUrl) {
-                return res.status(200).json({ success: true, redirectUrl });
+                return res.status(200).json({ success: true, redirectUrl, gateway: 'phonepe' });
             }
         }
         
@@ -270,56 +369,87 @@ const createPayment = async (req, res) => {
         res.status(400).json({ success: false, message: 'Payment initiation failed', details: data });
     } catch (error) {
         console.error('Create Payment Error:', error);
-        res.status(500).json({ success: false, message: 'Failed to create payment' });
+        res.status(500).json({ success: false, message: 'Failed to create payment: ' + error.message });
     }
 };
 
 // Step 2: Verify PhonePe Payment and Activate Subscription (V2)
 const verifyPayment = async (req, res) => {
     try {
-        const { transactionId, planId, groupSize = 1 } = req.body;
+        const { transactionId } = req.body;
         const { uid } = req.user;
-        const token = await getPhonePeToken();
+        
+        const statusCheck = await checkPaymentStatus(req, transactionId);
 
-        const response = await fetch(`${PG_BASE_URL}/checkout/v2/order/${transactionId}/status`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `O-Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (data.state === 'COMPLETED' || data.state === 'PAYMENT_SUCCESS') {
+        if (statusCheck.success) {
             const existingSub = await db.collection('subscriptions').where('transactionId', '==', transactionId).get();
             if (!existingSub.empty) {
                 return res.status(200).json({ success: true, message: 'Already activated' });
             }
 
-            const planDoc = await db.collection('subscriptionPlans').doc(planId).get();
-            const plan = planDoc.data();
-
-            const parsedGroupSize = parseInt(groupSize) || 1;
+            const pendingDoc = await db.collection('pendingBookings').doc(transactionId).get();
+            if (!pendingDoc.exists) {
+                return res.status(404).json({ success: false, message: 'Pending booking not found' });
+            }
+            
+            const pendingBooking = pendingDoc.data();
+            if (pendingBooking.userId !== uid) {
+                return res.status(403).json({ success: false, message: 'Unauthorized' });
+            }
 
             const subscriptionRef = db.collection('subscriptions').doc();
-                        await subscriptionRef.set({
+            await subscriptionRef.set({
                 id: subscriptionRef.id,
                 userId: uid,
-                planId,
-                planName: plan.name,
-                groupSize: parsedGroupSize,
-                totalMeals: plan.mealCount * parsedGroupSize,
-                remainingMeals: plan.mealCount * parsedGroupSize,
-                mealType: plan.mealType,
+                planId: pendingBooking.planId,
+                planName: pendingBooking.planName,
+                groupSize: pendingBooking.groupSize,
+                totalMeals: pendingBooking.mealCount * pendingBooking.groupSize,
+                remainingMeals: pendingBooking.mealCount * pendingBooking.groupSize,
+                mealType: pendingBooking.mealType,
+                startDate: pendingBooking.startDate,
+                addressId: pendingBooking.addressId,
+                amountPaid: pendingBooking.amount,
+                originalAmount: pendingBooking.originalAmount,
+                discountApplied: pendingBooking.discountApplied,
+                couponCode: pendingBooking.couponCode,
                 status: 'active',
                 transactionId: transactionId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             });
 
+            // Mark pending as completed
+            await db.collection('pendingBookings').doc(transactionId).update({
+                status: 'COMPLETED',
+                updatedAt: new Date().toISOString()
+            });
+
+            // Decrement coupon usage limit if applicable
+            if (pendingBooking.couponCode) {
+                try {
+                    const couponsSnapshot = await db.collection('coupons').where('code', '==', pendingBooking.couponCode).get();
+                    if (!couponsSnapshot.empty) {
+                        const couponDoc = couponsSnapshot.docs[0];
+                        const couponData = couponDoc.data();
+                        if (couponData.usageLimit !== undefined && couponData.usageLimit !== '') {
+                            let newReservations = couponData.reservations || [];
+                            if (pendingBooking.sessionId) {
+                                newReservations = newReservations.filter(r => r.sessionId !== pendingBooking.sessionId);
+                            }
+                            await couponDoc.ref.update({
+                                usageLimit: admin.firestore.FieldValue.increment(-1),
+                                reservations: newReservations
+                            });
+                        }
+                    }
+                } catch (couponErr) {
+                    console.error("Error decrementing coupon usage:", couponErr);
+                }
+            }
+
             // Handle Referral System logic
-            if (plan.mealCount * parsedGroupSize > 10) {
+            if (pendingBooking.mealCount * pendingBooking.groupSize > 10) {
                 try {
                     const userDoc = await db.collection('users').doc(uid).get();
                     if (userDoc.exists) {
@@ -403,11 +533,11 @@ const verifyPayment = async (req, res) => {
 
             res.status(200).json({ success: true, message: 'Subscription purchased', subscriptionId: subscriptionRef.id });
         } else {
-            res.status(400).json({ success: false, message: 'Payment failed or pending', details: data });
+            res.status(400).json({ success: false, message: statusCheck.message || 'Payment failed or pending', details: statusCheck.data });
         }
     } catch (error) {
         console.error('Verify Payment Error:', error);
-        res.status(500).json({ success: false, message: 'Failed to verify payment' });
+        res.status(500).json({ success: false, message: 'Failed to verify payment: ' + error.message, stack: error.stack });
     }
 };
 
@@ -488,7 +618,7 @@ const bookSubscriptionMeal = async (req, res) => {
 // Step 1: Create Instant Payment
 const createInstantPayment = async (req, res) => {
     try {
-        const { items, addressId, couponCode, freeFood } = req.body;
+        const { items, addressId, couponCode, freeFood, gateway } = req.body;
         const { uid } = req.user;
 
         // Calculate total amount
@@ -531,8 +661,6 @@ const createInstantPayment = async (req, res) => {
         const finalAmount = Math.max(0, totalAmount - discountApplied);
         const amountInPaise = Math.round(finalAmount * 100);
         const transactionId = 'I' + Date.now();
-        const token = await getPhonePeToken();
-
         // Temporarily save this pending instant booking
         await db.collection('pendingInstantBookings').doc(transactionId).set({
             transactionId,
@@ -548,6 +676,20 @@ const createInstantPayment = async (req, res) => {
             status: 'PENDING',
             createdAt: new Date().toISOString()
         });
+
+        if (gateway === 'razorpay' && process.env.ENABLE_RAZORPAY === 'true') {
+            const order = await createRazorpayOrder(amountInPaise, transactionId);
+            return res.status(200).json({ 
+                success: true, 
+                gateway: 'razorpay', 
+                orderId: order.id, 
+                amount: amountInPaise, 
+                transactionId, 
+                key: process.env.RAZORPAY_KEY 
+            });
+        }
+
+        const token = await getPhonePeToken();
 
         // PhonePe Pay Payload (V2)
         const payload = {
@@ -575,7 +717,7 @@ const createInstantPayment = async (req, res) => {
         if (data.redirectUrl || (data.paymentUrls && data.paymentUrls.redirectUrl) || data.state === 'PENDING') {
             const redirectUrl = data.redirectUrl || (data.paymentUrls && data.paymentUrls.redirectUrl);
             if (redirectUrl) {
-                return res.status(200).json({ success: true, redirectUrl, transactionId });
+                return res.status(200).json({ success: true, redirectUrl, transactionId, gateway: 'phonepe' });
             }
         }
         
@@ -593,19 +735,9 @@ const verifyInstantPayment = async (req, res) => {
         const { transactionId } = req.body;
         const { uid } = req.user;
 
-        const token = await getPhonePeToken();
+        const statusCheck = await checkPaymentStatus(req, transactionId);
 
-        const response = await fetch(`${PG_BASE_URL}/checkout/v2/order/${transactionId}/status`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `O-Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (data.state === 'COMPLETED' || data.state === 'PAYMENT_SUCCESS') {
+        if (statusCheck.success) {
             const pendingDoc = await db.collection('pendingInstantBookings').doc(transactionId).get();
             if (!pendingDoc.exists) {
                 return res.status(404).json({ success: false, message: 'Pending instant booking not found' });
@@ -661,13 +793,13 @@ const verifyInstantPayment = async (req, res) => {
                 }
             }
 
-            return res.status(200).json({ success: true, message: 'Instant payment verified and order created' });
+             return res.status(200).json({ success: true, message: 'Instant payment verified and order created' });
         } else {
-            res.status(400).json({ success: false, message: 'Payment failed or pending', details: data });
+            res.status(400).json({ success: false, message: statusCheck.message || 'Payment failed or pending', details: statusCheck.data });
         }
     } catch (error) {
         console.error('Verify Instant Payment Error:', error);
-        res.status(500).json({ success: false, message: 'Failed to verify payment' });
+        res.status(500).json({ success: false, message: 'Failed to verify payment: ' + error.message, stack: error.stack });
     }
 };
 
@@ -675,7 +807,7 @@ const verifyInstantPayment = async (req, res) => {
 // Step 1: Create an Add-on Payment Session with PhonePe (V2)
 const createAddonPayment = async (req, res) => {
     try {
-        const { subscriptionId, menuItems, addOnItems, date, deliverySlot, addressId } = req.body;
+        const { subscriptionId, menuItems, addOnItems, date, deliverySlot, addressId, gateway } = req.body;
         const { uid } = req.user;
 
         // Cutoff validation for add-on flow
@@ -699,14 +831,13 @@ const createAddonPayment = async (req, res) => {
         }
 
         const amountInPaise = Math.round(totalAmount * 100);
-        const transactionId = 'T' + Date.now();
-        const token = await getPhonePeToken();
+        const transactionId = 'A' + Date.now();
 
         // Temporarily save this pending booking
         await db.collection('pendingBookings').doc(transactionId).set({
             transactionId,
-            subscriptionId,
             userId: uid,
+            subscriptionId,
             menuItems,
             addOnItems,
             date,
@@ -716,6 +847,20 @@ const createAddonPayment = async (req, res) => {
             status: 'PENDING',
             createdAt: new Date().toISOString()
         });
+
+        if (gateway === 'razorpay' && process.env.ENABLE_RAZORPAY === 'true') {
+            const order = await createRazorpayOrder(amountInPaise, transactionId);
+            return res.status(200).json({ 
+                success: true, 
+                gateway: 'razorpay', 
+                orderId: order.id, 
+                amount: amountInPaise, 
+                transactionId, 
+                key: process.env.RAZORPAY_KEY 
+            });
+        }
+
+        const token = await getPhonePeToken();
 
         const payload = {
             merchantOrderId: transactionId,
@@ -742,7 +887,7 @@ const createAddonPayment = async (req, res) => {
         if (data.redirectUrl || (data.paymentUrls && data.paymentUrls.redirectUrl) || data.state === 'PENDING') {
             const redirectUrl = data.redirectUrl || (data.paymentUrls && data.paymentUrls.redirectUrl);
             if (redirectUrl) {
-                return res.status(200).json({ success: true, redirectUrl });
+                return res.status(200).json({ success: true, redirectUrl, transactionId, gateway: 'phonepe' });
             }
         }
         
@@ -759,19 +904,10 @@ const verifyAddonPayment = async (req, res) => {
     try {
         const { transactionId } = req.body;
         const { uid } = req.user;
-        const token = await getPhonePeToken();
+        
+        const statusCheck = await checkPaymentStatus(req, transactionId);
 
-        const response = await fetch(`${PG_BASE_URL}/checkout/v2/order/${transactionId}/status`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `O-Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (data.state === 'COMPLETED' || data.state === 'PAYMENT_SUCCESS') {
+        if (statusCheck.success) {
             const pendingDoc = await db.collection('pendingBookings').doc(transactionId).get();
             if (!pendingDoc.exists) {
                 return res.status(404).json({ success: false, message: 'Pending booking not found' });
@@ -821,7 +957,7 @@ const verifyAddonPayment = async (req, res) => {
 
             res.status(200).json({ success: true, message: 'Meal booked with addons successfully' });
         } else {
-            res.status(400).json({ success: false, message: 'Payment failed or pending', details: data });
+            res.status(400).json({ success: false, message: statusCheck.message || 'Payment failed or pending', details: statusCheck.data });
         }
     } catch (error) {
         console.error('Verify Addon Payment Error:', error);
@@ -832,7 +968,7 @@ const verifyAddonPayment = async (req, res) => {
 // Step 1: Create Dine-In Payment
 const createDineInPayment = async (req, res) => {
     try {
-        const { items, customerName, customerPhone, tableNumber, couponCode, requiresTableService, freeFood } = req.body;
+        const { items, customerName, customerPhone, tableNumber, couponCode, requiresTableService, freeFood, gateway } = req.body;
 
         // Calculate total amount
         let totalAmount = 0;
@@ -879,7 +1015,6 @@ const createDineInPayment = async (req, res) => {
         
         const amountInPaise = Math.round(finalAmount * 100);
         const transactionId = 'D' + Date.now();
-        const token = await getPhonePeToken();
 
         // Temporarily save this pending dine-in booking
         await db.collection('pendingDineInBookings').doc(transactionId).set({
@@ -898,6 +1033,20 @@ const createDineInPayment = async (req, res) => {
             status: 'PENDING',
             createdAt: new Date().toISOString()
         });
+
+        if (gateway === 'razorpay' && process.env.ENABLE_RAZORPAY === 'true') {
+            const order = await createRazorpayOrder(amountInPaise, transactionId);
+            return res.status(200).json({ 
+                success: true, 
+                gateway: 'razorpay', 
+                orderId: order.id, 
+                amount: amountInPaise, 
+                transactionId, 
+                key: process.env.RAZORPAY_KEY 
+            });
+        }
+
+        const token = await getPhonePeToken();
 
         // PhonePe Pay Payload (V2)
         const payload = {
@@ -925,7 +1074,7 @@ const createDineInPayment = async (req, res) => {
         if (data.redirectUrl || (data.paymentUrls && data.paymentUrls.redirectUrl) || data.state === 'PENDING') {
             const redirectUrl = data.redirectUrl || (data.paymentUrls && data.paymentUrls.redirectUrl);
             if (redirectUrl) {
-                return res.status(200).json({ success: true, redirectUrl, transactionId });
+                return res.status(200).json({ success: true, redirectUrl, transactionId, gateway: 'phonepe' });
             }
         }
         
@@ -935,25 +1084,14 @@ const createDineInPayment = async (req, res) => {
         console.error('Create Dine-In Payment Error:', error);
         res.status(500).json({ success: false, message: 'Failed to initiate payment' });
     }
-};
-
-// Step 2: Verify Dine-In Payment
+};// Step 2: Verify Dine-In Payment and Create Order
 const verifyDineInPayment = async (req, res) => {
     try {
         const { transactionId } = req.body;
-        const token = await getPhonePeToken();
+        
+        const statusCheck = await checkPaymentStatus(req, transactionId);
 
-        const response = await fetch(`${PG_BASE_URL}/checkout/v2/order/${transactionId}/status`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `O-Bearer ${token}`
-            }
-        });
-
-        const data = await response.json();
-
-        if (data.state === 'COMPLETED' || data.state === 'PAYMENT_SUCCESS') {
+        if (statusCheck.success) {
             const pendingDoc = await db.collection('pendingDineInBookings').doc(transactionId).get();
             if (!pendingDoc.exists) {
                 return res.status(404).json({ success: false, message: 'Pending dine-in booking not found' });
@@ -1010,15 +1148,16 @@ const verifyDineInPayment = async (req, res) => {
 
             return res.status(200).json({ success: true, message: 'Dine-In payment verified', phone: pendingBooking.customerPhone });
         } else {
-            res.status(400).json({ success: false, message: 'Payment failed or pending', details: data });
+            res.status(400).json({ success: false, message: statusCheck.message || 'Payment failed or pending', details: statusCheck.data });
         }
     } catch (error) {
         console.error('Verify Dine-In Payment Error:', error);
-        res.status(500).json({ success: false, message: 'Failed to verify payment' });
+        res.status(500).json({ success: false, message: 'Failed to verify payment: ' + error.message, stack: error.stack });
     }
 };
 
 module.exports = {
+    getGateways,
     reserveCoupon,
     releaseCoupon, 
     createPayment, 

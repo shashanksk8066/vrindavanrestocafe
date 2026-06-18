@@ -5,17 +5,35 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import useAuthStore from '../../store/useAuthStore';
 import { X, ArrowLeft, Info, Calendar } from 'lucide-react';
 import LoginPopup from '../../components/LoginPopup';
+import { loadRazorpayScript } from '../../utils/razorpay';
 
 const PlanCheckout = () => {
     const { state } = useLocation();
     const navigate = useNavigate();
     const { user } = useAuthStore();
     
+    const [gateways, setGateways] = useState({ phonepe: false, razorpay: false });
+    const [selectedGateway, setSelectedGateway] = useState('phonepe');
+
     // Redirect back if no state
     useEffect(() => {
         if (!state || !state.plan) {
             navigate('/plans');
         }
+        
+        fetch(`${import.meta.env.VITE_API_URL || ""}/api/orders/gateways`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.gateways) {
+                    setGateways(data.gateways);
+                    if (data.gateways.razorpay && !data.gateways.phonepe) {
+                        setSelectedGateway('razorpay');
+                    } else if (data.gateways.phonepe) {
+                        setSelectedGateway('phonepe');
+                    }
+                }
+            })
+            .catch(console.error);
     }, [state, navigate]);
 
     const plan = state?.plan;
@@ -120,15 +138,76 @@ const PlanCheckout = () => {
                     planId: plan.id,
                     groupSize: groupSize,
                     couponCode: appliedCoupon ? appliedCoupon.code : null,
-                    sessionId: getSessionId()
+                    sessionId: getSessionId(),
+                    gateway: selectedGateway
                 })
             });
             const data = await res.json();
             
-            if (data.success && data.redirectUrl) {
-                window.location.href = data.redirectUrl;
+            if (data.success) {
+                if (data.gateway === 'razorpay') {
+                    const loaded = await loadRazorpayScript();
+                    if (!loaded) {
+                        alert("Razorpay SDK failed to load. Are you offline?");
+                        setIsPurchasing(false);
+                        return;
+                    }
+                    const options = {
+                        key: data.key,
+                        amount: data.amount,
+                        currency: "INR",
+                        name: "Vrindavan Resto Cafe",
+                        order_id: data.orderId,
+                        handler: async function (response) {
+                            try {
+                                const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/orders/verify-payment`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                    body: JSON.stringify({
+                                        transactionId: data.transactionId,
+                                        gateway: 'razorpay',
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_signature: response.razorpay_signature
+                                    })
+                                });
+                                const verifyData = await verifyRes.json();
+                                if (verifyData.success) {
+                                    navigate('/plans?tab=my-plans');
+                                } else {
+                                    alert("Payment verification failed: " + (verifyData.message || 'Unknown error'));
+                                    setIsPurchasing(false);
+                                }
+                            } catch (e) {
+                                alert("Error verifying payment");
+                                setIsPurchasing(false);
+                            }
+                        },
+                        prefill: {
+                            name: user.displayName || 'Customer',
+                            email: user.email,
+                            contact: user.phoneNumber || ''
+                        },
+                        theme: { color: "#FF6B00" },
+                        modal: {
+                            ondismiss: function() {
+                                setIsPurchasing(false);
+                            }
+                        }
+                    };
+                    const rzp = new window.Razorpay(options);
+                    rzp.on('payment.failed', function (response) {
+                        alert(response.error.description);
+                        setIsPurchasing(false);
+                    });
+                    rzp.open();
+                } else if (data.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                } else {
+                    navigate('/orders');
+                }
             } else {
-                alert("Payment initiation failed: " + (data.message || 'Unknown error'));
+                alert("Payment initiation failed: " + (data.message || data.debug || JSON.stringify(data)));
                 setIsPurchasing(false);
             }
         } catch (error) {
@@ -269,6 +348,40 @@ const PlanCheckout = () => {
                     </div>
                 </div>
             </div>
+
+            {gateways.phonepe && gateways.razorpay && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                    <div className="p-5 border-b border-gray-100 bg-gray-50">
+                        <h2 className="font-bold text-gray-900 flex items-center">
+                            Payment Gateway
+                        </h2>
+                    </div>
+                    <div className="p-5">
+                        <label className="flex items-center space-x-3 mb-4 cursor-pointer">
+                            <input 
+                                type="radio" 
+                                name="gateway" 
+                                value="phonepe" 
+                                checked={selectedGateway === 'phonepe'} 
+                                onChange={() => setSelectedGateway('phonepe')}
+                                className="w-4 h-4 text-orange-600 focus:ring-orange-500"
+                            />
+                            <span className="font-medium text-gray-900">PhonePe</span>
+                        </label>
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                            <input 
+                                type="radio" 
+                                name="gateway" 
+                                value="razorpay" 
+                                checked={selectedGateway === 'razorpay'} 
+                                onChange={() => setSelectedGateway('razorpay')}
+                                className="w-4 h-4 text-orange-600 focus:ring-orange-500"
+                            />
+                            <span className="font-medium text-gray-900">Razorpay</span>
+                        </label>
+                    </div>
+                </div>
+            )}
 
             <button 
                 onClick={handleBuyPlan}

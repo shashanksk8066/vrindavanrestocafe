@@ -4,6 +4,7 @@ import { db } from '../../config/firebase';
 import { collection, getDocs, addDoc, query, where, doc, getDoc } from 'firebase/firestore';
 import { MapPin, Clock, Navigation, Plus, ArrowLeft, CheckCircle2, X, Gift } from 'lucide-react';
 import useAuthStore from '../../store/useAuthStore';
+import { loadRazorpayScript } from '../../utils/razorpay';
 import { GoogleMap, useJsApiLoader, Marker, Circle } from '@react-google-maps/api';
 import { calculateDistance } from '../../utils/distance';
 
@@ -84,6 +85,8 @@ const Checkout = () => {
     const [appliedCoupon, setAppliedCoupon] = useState(null);
     const [couponError, setCouponError] = useState('');
     const [applyingCoupon, setApplyingCoupon] = useState(false);
+    const [gateways, setGateways] = useState({ phonepe: false, razorpay: false });
+    const [selectedGateway, setSelectedGateway] = useState('phonepe');
 
     // Free Foods State
     const [allFreeFoods, setAllFreeFoods] = useState([]);
@@ -133,6 +136,20 @@ const Checkout = () => {
     };
 
     useEffect(() => {
+        fetch(`${import.meta.env.VITE_API_URL || ""}/api/orders/gateways`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.gateways) {
+                    setGateways(data.gateways);
+                    if (data.gateways.razorpay && !data.gateways.phonepe) {
+                        setSelectedGateway('razorpay');
+                    } else if (data.gateways.phonepe && !data.gateways.razorpay) {
+                        setSelectedGateway('phonepe');
+                    }
+                }
+            })
+            .catch(console.error);
+            
         if (!subscription && !isInstantOrder) {
             navigate('/plans');
             return;
@@ -281,7 +298,8 @@ const Checkout = () => {
                     addressId: selectedAddressId,
                     couponCode: appliedCoupon ? appliedCoupon.code : null,
                     sessionId: getSessionId(),
-                    freeFood: selectedFreeFood
+                    freeFood: selectedFreeFood,
+                    gateway: selectedGateway
                 };
                 endpoint = '/api/orders/create-instant-payment';
             } else {
@@ -292,7 +310,8 @@ const Checkout = () => {
                     date,
                     deliverySlot: selectedSlot,
                     addressId: selectedAddressId,
-                    freeFood: selectedFreeFood
+                    freeFood: selectedFreeFood,
+                    gateway: selectedGateway
                 };
                 endpoint = currentTotalAmount > 0 ? '/api/orders/create-addon-payment' : '/api/orders/book-meal';
             }
@@ -308,13 +327,71 @@ const Checkout = () => {
 
             const data = await res.json();
             if (data.success) {
-                if (data.redirectUrl) {
+                if (data.gateway === 'razorpay') {
+                    const loaded = await loadRazorpayScript();
+                    if (!loaded) {
+                        alert("Razorpay SDK failed to load. Are you offline?");
+                        setProcessing(false);
+                        return;
+                    }
+                    const options = {
+                        key: data.key,
+                        amount: data.amount,
+                        currency: "INR",
+                        name: "Vrindavan Resto Cafe",
+                        order_id: data.orderId,
+                        handler: async function (response) {
+                            try {
+                                const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || ""}${isInstantOrder ? '/api/orders/verify-instant-payment' : (currentTotalAmount > 0 ? '/api/orders/verify-addon-payment' : '/api/orders/verify-payment')}`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                    body: JSON.stringify({
+                                        transactionId: data.transactionId,
+                                        gateway: 'razorpay',
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_signature: response.razorpay_signature
+                                    })
+                                });
+                                const verifyData = await verifyRes.json();
+                                if (verifyData.success) {
+                                    localStorage.removeItem('guestCart');
+                                    navigate(isInstantOrder ? '/orders' : '/plans?tab=my-plans');
+                                } else {
+                                    alert("Payment verification failed: " + (verifyData.message || 'Unknown error'));
+                                    setProcessing(false);
+                                }
+                            } catch (e) {
+                                alert("Error verifying payment");
+                                setProcessing(false);
+                            }
+                        },
+                        prefill: {
+                            name: user.displayName || 'Customer',
+                            email: user.email,
+                            contact: user.phoneNumber || ''
+                        },
+                        theme: { color: "#FF6B00" },
+                        modal: {
+                            ondismiss: function() {
+                                setProcessing(false);
+                            }
+                        }
+                    };
+                    const rzp = new window.Razorpay(options);
+                    rzp.on('payment.failed', function (response) {
+                        alert(response.error.description);
+                        setProcessing(false);
+                    });
+                    rzp.open();
+                } else if (data.redirectUrl) {
                     window.location.href = data.redirectUrl;
                 } else {
-                    navigate('/orders');
+                    localStorage.removeItem('guestCart');
+                    navigate(isInstantOrder ? '/orders' : '/plans?tab=my-plans');
                 }
             } else {
-                alert(data.message || "Checkout failed");
+                alert(data.message || data.debug || "Checkout failed: " + JSON.stringify(data));
                 setProcessing(false);
             }
         } catch (error) {
@@ -619,6 +696,40 @@ const Checkout = () => {
                     </div>
                 </div>
             </div>
+
+            {gateways.phonepe && gateways.razorpay && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                    <div className="p-5 border-b border-gray-100 bg-gray-50">
+                        <h2 className="font-bold text-gray-900 flex items-center">
+                            Payment Gateway
+                        </h2>
+                    </div>
+                    <div className="p-5">
+                        <label className="flex items-center space-x-3 mb-4 cursor-pointer">
+                            <input 
+                                type="radio" 
+                                name="gateway" 
+                                value="phonepe" 
+                                checked={selectedGateway === 'phonepe'} 
+                                onChange={() => setSelectedGateway('phonepe')}
+                                className="w-4 h-4 text-orange-600 focus:ring-orange-500"
+                            />
+                            <span className="font-medium text-gray-900">PhonePe</span>
+                        </label>
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                            <input 
+                                type="radio" 
+                                name="gateway" 
+                                value="razorpay" 
+                                checked={selectedGateway === 'razorpay'} 
+                                onChange={() => setSelectedGateway('razorpay')}
+                                className="w-4 h-4 text-orange-600 focus:ring-orange-500"
+                            />
+                            <span className="font-medium text-gray-900">Razorpay</span>
+                        </label>
+                    </div>
+                </div>
+            )}
 
             <button 
                 onClick={handleCheckout}

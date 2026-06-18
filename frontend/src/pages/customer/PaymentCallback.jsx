@@ -64,8 +64,10 @@ const PaymentCallback = () => {
                 if (data.success) {
                     setStatus('success');
                     if (type === 'instantBooking') {
+                        localStorage.removeItem('guestCart');
                         setMessage('Payment successful! Your order has been placed.');
                     } else if (type === 'addonBooking') {
+                        localStorage.removeItem('guestCart');
                         setMessage('Payment successful! Meal with add-ons has been booked.');
                     } else if (type === 'dineInBooking') {
                         setMessage('Payment successful! Your table order has been placed.');

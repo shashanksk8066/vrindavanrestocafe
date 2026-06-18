@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { reserveCoupon, releaseCoupon, createPayment, verifyPayment, bookSubscriptionMeal, createInstantPayment, verifyInstantPayment, createAddonPayment, verifyAddonPayment, createDineInPayment, verifyDineInPayment } = require('../controllers/orderController');
+const { getGateways, reserveCoupon, releaseCoupon, createPayment, verifyPayment, bookSubscriptionMeal, createInstantPayment, verifyInstantPayment, createAddonPayment, verifyAddonPayment, createDineInPayment, verifyDineInPayment } = require('../controllers/orderController');
 const { verifyToken } = require('../middleware/auth');
 
-// Public Dine-In routes (No login required)
+// Public routes
+router.get('/gateways', getGateways);
 router.post('/dine-in/create', createDineInPayment);
 router.post('/dine-in/verify', verifyDineInPayment);
 

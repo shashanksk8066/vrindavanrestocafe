@@ -4,6 +4,8 @@ import { Utensils, ArrowLeft, CheckCircle2, X } from 'lucide-react';
 import { db } from '../../config/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Gift } from 'lucide-react';
+import { loadRazorpayScript } from '../../utils/razorpay';
+import useAuthStore from '../../store/useAuthStore';
 
 const DineInCheckout = () => {
     const { tableNumber } = useParams();
@@ -36,8 +38,25 @@ const DineInCheckout = () => {
     // Free Foods State
     const [allFreeFoods, setAllFreeFoods] = useState([]);
     const [selectedFreeFood, setSelectedFreeFood] = useState(null);
+    const { user } = useAuthStore();
+    const [gateways, setGateways] = useState({ phonepe: false, razorpay: false });
+    const [selectedGateway, setSelectedGateway] = useState('phonepe');
 
     React.useEffect(() => {
+        fetch(`${import.meta.env.VITE_API_URL || ""}/api/orders/gateways`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.gateways) {
+                    setGateways(data.gateways);
+                    if (data.gateways.razorpay && !data.gateways.phonepe) {
+                        setSelectedGateway('razorpay');
+                    } else if (data.gateways.phonepe && !data.gateways.razorpay) {
+                        setSelectedGateway('phonepe');
+                    }
+                }
+            })
+            .catch(console.error);
+
         const fetchFreeFoods = async () => {
             try {
                 const ffQ = query(collection(db, 'freeFoods'), where('status', '==', 'active'));
@@ -163,7 +182,8 @@ const DineInCheckout = () => {
                 couponCode: appliedCoupon ? appliedCoupon.code : null,
                 sessionId: getSessionId(),
                 requiresTableService,
-                freeFood: selectedFreeFood
+                freeFood: selectedFreeFood,
+                gateway: selectedGateway
             };
 
             const response = await fetch(`${API_URL}/api/orders/dine-in/create`, {
@@ -173,10 +193,70 @@ const DineInCheckout = () => {
             });
             const data = await response.json();
 
-            if (data.success && data.redirectUrl) {
-                window.location.href = data.redirectUrl;
+            if (data.success) {
+                if (data.gateway === 'razorpay') {
+                    const loaded = await loadRazorpayScript();
+                    if (!loaded) {
+                        alert("Razorpay SDK failed to load. Are you offline?");
+                        setProcessing(false);
+                        return;
+                    }
+                    const token = await user?.getIdToken();
+                    const options = {
+                        key: data.key,
+                        amount: data.amount,
+                        currency: "INR",
+                        name: "Vrindavan Resto Cafe",
+                        order_id: data.orderId,
+                        handler: async function (paymentResponse) {
+                            try {
+                                const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/orders/dine-in/verify`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', ...(token ? {'Authorization': `Bearer ${token}`} : {}) },
+                                    body: JSON.stringify({
+                                        transactionId: data.transactionId,
+                                        gateway: 'razorpay',
+                                        razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                                        razorpay_order_id: paymentResponse.razorpay_order_id,
+                                        razorpay_signature: paymentResponse.razorpay_signature
+                                    })
+                                });
+                                const verifyData = await verifyRes.json();
+                                if (verifyData.success) {
+                                    navigate(`/dine-in/track?phone=${verifyData.phone || customerPhone}`);
+                                } else {
+                                    alert("Payment verification failed: " + (verifyData.message || 'Unknown error'));
+                                    setProcessing(false);
+                                }
+                            } catch (e) {
+                                alert("Error verifying payment");
+                                setProcessing(false);
+                            }
+                        },
+                        prefill: {
+                            name: customerName,
+                            contact: customerPhone
+                        },
+                        theme: { color: "#FF6B00" },
+                        modal: {
+                            ondismiss: function() {
+                                setProcessing(false);
+                            }
+                        }
+                    };
+                    const rzp = new window.Razorpay(options);
+                    rzp.on('payment.failed', function (response) {
+                        alert(response.error.description);
+                        setProcessing(false);
+                    });
+                    rzp.open();
+                } else if (data.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                } else {
+                    navigate('/orders');
+                }
             } else {
-                alert(data.message || 'Payment initiation failed');
+                alert(data.message || data.debug || 'Payment initiation failed: ' + JSON.stringify(data));
                 setProcessing(false);
             }
         } catch (error) {
@@ -396,6 +476,40 @@ const DineInCheckout = () => {
                 </div>
 
             </div>
+
+            {gateways.phonepe && gateways.razorpay && (
+                <div className="max-w-3xl mx-auto px-4 pb-4">
+                    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                        <h2 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-4">
+                            Payment Gateway
+                        </h2>
+                        <div className="space-y-4">
+                            <label className="flex items-center space-x-3 cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    name="gateway" 
+                                    value="phonepe" 
+                                    checked={selectedGateway === 'phonepe'} 
+                                    onChange={() => setSelectedGateway('phonepe')}
+                                    className="w-4 h-4 text-amber-500 focus:ring-amber-500"
+                                />
+                                <span className="font-semibold text-gray-900">PhonePe</span>
+                            </label>
+                            <label className="flex items-center space-x-3 cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    name="gateway" 
+                                    value="razorpay" 
+                                    checked={selectedGateway === 'razorpay'} 
+                                    onChange={() => setSelectedGateway('razorpay')}
+                                    className="w-4 h-4 text-amber-500 focus:ring-amber-500"
+                                />
+                                <span className="font-semibold text-gray-900">Razorpay</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Pay Button */}
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 z-40">
