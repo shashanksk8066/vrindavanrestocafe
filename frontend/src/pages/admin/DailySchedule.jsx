@@ -308,7 +308,7 @@ const DailySchedule = () => {
                                         <div className="w-16 h-16 sm:w-20 sm:h-20 transition-all flex items-center justify-center bg-white rounded-full overflow-hidden border border-gray-100 shadow-sm">
                                             {catData && (catData.imageUrl || catData.image) ? (
                                                 <img 
-                                                    src={(catData.imageUrl || catData.image).replace('localhost', window.location.hostname)} 
+                                                    src={(catData.imageUrl || catData.image)} 
                                                     alt={catName} 
                                                     className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 p-1" 
                                                 />

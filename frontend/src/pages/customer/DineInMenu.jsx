@@ -47,8 +47,7 @@ const DineInMenu = () => {
                         if (data.imageUrl) {
                             if (data.imageUrl.includes('ngrok-free.app')) {
                                 } else if (data.imageUrl.includes('localhost')) {
-                                data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
-                            }
+                                }
                         }
                         items.push({ id: doc.id, ...data });
                     }

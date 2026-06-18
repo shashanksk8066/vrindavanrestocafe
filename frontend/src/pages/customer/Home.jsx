@@ -67,8 +67,7 @@ const Home = () => {
                     if (data.imageUrl) {
                         if (data.imageUrl.includes('ngrok-free.app')) {
                             } else if (data.imageUrl.includes('localhost')) {
-                            data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
-                        }
+                            }
                     }
                     bannerData.push({ id: doc.id, ...data });
                 });
@@ -115,8 +114,7 @@ const Home = () => {
                     if (data.imageUrl && typeof data.imageUrl === 'string' && data.imageUrl.trim() !== '') {
                         if (data.imageUrl.includes('ngrok-free.app')) {
                             } else if (data.imageUrl.includes('localhost')) {
-                            data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
-                        }
+                            }
                         galleryData.push({ id: doc.id, ...data });
                     }
                 });
@@ -131,8 +129,7 @@ const Home = () => {
                     if (data.imageUrl) {
                         if (data.imageUrl.includes('ngrok-free.app')) {
                             } else if (data.imageUrl.includes('localhost')) {
-                            data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
-                        }
+                            }
                     }
                     catData.push({ id: doc.id, ...data });
                 });
@@ -152,8 +149,7 @@ const Home = () => {
                     if (data.imageUrl) {
                         if (data.imageUrl.includes('ngrok-free.app')) {
                             } else if (data.imageUrl.includes('localhost')) {
-                            data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
-                        }
+                            }
                     }
                     menuData.push({ id: doc.id, ...data });
                 });
@@ -814,7 +810,7 @@ const Home = () => {
                                 <div className="w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 transition-all flex items-center justify-center">
                                     {cat.imageUrl || cat.image ? (
                                         <img 
-                                            src={(cat.imageUrl || cat.image).replace('localhost', window.location.hostname)} 
+                                            src={(cat.imageUrl || cat.image)} 
                                             alt={cat.name} 
                                             className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" 
                                         />

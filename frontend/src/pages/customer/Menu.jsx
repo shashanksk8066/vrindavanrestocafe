@@ -56,8 +56,7 @@ const Menu = () => {
                     if (data.imageUrl) {
                         if (data.imageUrl.includes('ngrok-free.app')) {
                             } else if (data.imageUrl.includes('localhost')) {
-                            data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
-                        }
+                            }
                     }
                     menuData.push({ id: doc.id, ...data });
                 });
@@ -232,7 +231,7 @@ const Menu = () => {
                                 <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 transition-all flex items-center justify-center bg-white rounded-full overflow-hidden border border-gray-100 shadow-sm">
                                     {cat.imageUrl || cat.image ? (
                                         <img 
-                                            src={(cat.imageUrl || cat.image).replace('localhost', window.location.hostname)} 
+                                            src={(cat.imageUrl || cat.image)} 
                                             alt={cat.name} 
                                             className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 p-1" 
                                         />
