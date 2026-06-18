@@ -37,8 +37,7 @@ const Menus = () => {
                 const data = doc.data();
                 if (data.imageUrl) {
                     if (data.imageUrl.includes('ngrok-free.app')) {
-                        data.imageUrl = data.imageUrl.replace(/https:\/\/[^\/]+/, `http://${window.location.hostname}:5050`);
-                    } else if (data.imageUrl.includes('localhost')) {
+                        } else if (data.imageUrl.includes('localhost')) {
                         data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
                     }
                 }
@@ -82,7 +81,7 @@ const Menus = () => {
         try {
             // Note: Since we need to hit our Node backend for image processing and local VPS storage
             const token = await useAuthStore.getState().user?.getIdToken();
-            const res = await fetch(`http://localhost:5050/api/upload/menu-image`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/upload/menu-image`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`

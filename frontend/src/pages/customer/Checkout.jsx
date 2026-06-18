@@ -212,7 +212,7 @@ const Checkout = () => {
         setCouponError('');
         try {
             const sid = getSessionId();
-            const res = await fetch(`http://localhost:5050/api/orders/reserve-coupon`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/orders/reserve-coupon`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -252,7 +252,7 @@ const Checkout = () => {
         if (appliedCoupon) {
             try {
                 const sid = getSessionId();
-                await fetch(`http://localhost:5050/api/orders/release-coupon`, {
+                await fetch(`${import.meta.env.VITE_API_URL || ""}/api/orders/release-coupon`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ couponCode: appliedCoupon.code, sessionId: sid })
@@ -297,7 +297,7 @@ const Checkout = () => {
                 endpoint = currentTotalAmount > 0 ? '/api/orders/create-addon-payment' : '/api/orders/book-meal';
             }
             
-            const res = await fetch(`http://localhost:5050${endpoint}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || ""}${ endpoint }`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

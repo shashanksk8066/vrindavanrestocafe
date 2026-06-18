@@ -23,8 +23,7 @@ const processAndSaveImage = async (req, res, folderName) => {
             .resize({ width: 800, withoutEnlargement: true }) // Optimize size
             .toFile(filePath);
 
-        const domain = process.env.VPS_DOMAIN || 'http://localhost:5000';
-        const publicUrl = `${domain}/public/uploads/${folderName}/${filename}`;
+        const publicUrl = `/api/uploads/${folderName}/${filename}`;
 
         res.status(200).json({ success: true, url: publicUrl });
     } catch (error) {

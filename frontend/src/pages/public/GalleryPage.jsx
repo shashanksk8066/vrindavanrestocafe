@@ -26,8 +26,7 @@ const GalleryPage = () => {
                     const data = doc.data();
                     if (data.imageUrl) {
                         if (data.imageUrl.includes('ngrok-free.app')) {
-                            data.imageUrl = data.imageUrl.replace(/https:\/\/[^\/]+/, `http://${window.location.hostname}:5050`);
-                        } else if (data.imageUrl.includes('localhost')) {
+                            } else if (data.imageUrl.includes('localhost')) {
                             data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
                         }
                     }

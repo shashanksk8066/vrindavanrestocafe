@@ -66,8 +66,7 @@ const Home = () => {
                     const data = doc.data();
                     if (data.imageUrl) {
                         if (data.imageUrl.includes('ngrok-free.app')) {
-                            data.imageUrl = data.imageUrl.replace(/https:\/\/[^\/]+/, `http://${window.location.hostname}:5050`);
-                        } else if (data.imageUrl.includes('localhost')) {
+                            } else if (data.imageUrl.includes('localhost')) {
                             data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
                         }
                     }
@@ -115,8 +114,7 @@ const Home = () => {
                     const data = doc.data();
                     if (data.imageUrl && typeof data.imageUrl === 'string' && data.imageUrl.trim() !== '') {
                         if (data.imageUrl.includes('ngrok-free.app')) {
-                            data.imageUrl = data.imageUrl.replace(/https:\/\/[^\/]+/, `http://${window.location.hostname}:5050`);
-                        } else if (data.imageUrl.includes('localhost')) {
+                            } else if (data.imageUrl.includes('localhost')) {
                             data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
                         }
                         galleryData.push({ id: doc.id, ...data });
@@ -132,8 +130,7 @@ const Home = () => {
                     const data = doc.data();
                     if (data.imageUrl) {
                         if (data.imageUrl.includes('ngrok-free.app')) {
-                            data.imageUrl = data.imageUrl.replace(/https:\/\/[^\/]+/, `http://${window.location.hostname}:5050`);
-                        } else if (data.imageUrl.includes('localhost')) {
+                            } else if (data.imageUrl.includes('localhost')) {
                             data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
                         }
                     }
@@ -154,8 +151,7 @@ const Home = () => {
                     const data = doc.data();
                     if (data.imageUrl) {
                         if (data.imageUrl.includes('ngrok-free.app')) {
-                            data.imageUrl = data.imageUrl.replace(/https:\/\/[^\/]+/, `http://${window.location.hostname}:5050`);
-                        } else if (data.imageUrl.includes('localhost')) {
+                            } else if (data.imageUrl.includes('localhost')) {
                             data.imageUrl = data.imageUrl.replace('localhost', window.location.hostname);
                         }
                     }

@@ -32,16 +32,16 @@ const PaymentCallback = () => {
 
         const verifyPayment = async () => {
             try {
-                let endpoint = 'http://localhost:5050/api/orders/verify-payment';
+                let endpoint = `${import.meta.env.VITE_API_URL || ""}/api/orders/verify-payment`;
                 let headers = { 'Content-Type': 'application/json' };
                 let bodyData = { transactionId };
 
                 if (type === 'addonBooking') {
-                    endpoint = 'http://localhost:5050/api/orders/verify-addon-payment';
+                    endpoint = `${import.meta.env.VITE_API_URL || ""}/api/orders/verify-addon-payment`;
                 } else if (type === 'instantBooking') {
-                    endpoint = 'http://localhost:5050/api/orders/verify-instant-payment';
+                    endpoint = `${import.meta.env.VITE_API_URL || ""}/api/orders/verify-instant-payment`;
                 } else if (type === 'dineInBooking') {
-                    endpoint = 'http://localhost:5050/api/orders/dine-in/verify';
+                    endpoint = `${import.meta.env.VITE_API_URL || ""}/api/orders/dine-in/verify`;
                 }
 
                 if (type !== 'dineInBooking' && user) {

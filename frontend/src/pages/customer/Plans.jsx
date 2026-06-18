@@ -96,7 +96,7 @@ const Plans = () => {
         setIsPurchasing(true);
         try {
             const token = await user.getIdToken();
-            const res = await fetch('http://localhost:5050/api/orders/create-payment', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/orders/create-payment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -6,7 +6,7 @@ export const uploadImage = async (file, folder = 'reviews') => {
     
     try {
         // Adjust port if your backend runs on a different port (e.g. 5050)
-        const response = await fetch(`http://localhost:5050/api/upload/review-image`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/upload/review-image`, {
             method: 'POST',
             body: formData
         });
@@ -16,7 +16,7 @@ export const uploadImage = async (file, folder = 'reviews') => {
             let url = data.url;
             // Handle ngrok workaround just like Menus.jsx does
             if (url && url.includes('ngrok-free.app')) {
-                url = url.replace(/https:\/\/.*\.ngrok-free\.app/, 'http://localhost:5050');
+                url = url.replace(/https:\/\/.*\.ngrok-free\.app/, import.meta.env.VITE_API_URL || '');
             }
             return url;
         } else {

@@ -66,7 +66,7 @@ const CustomerReferrals = () => {
         setClaimingId(rewardId);
         try {
             const token = await user.getIdToken();
-            const res = await fetch('http://localhost:5050/api/rewards/claim', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/rewards/claim`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

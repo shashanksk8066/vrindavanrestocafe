@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static uploads for images from the VPS
-app.use('/public/uploads', express.static(path.join(__dirname, '../public/uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
