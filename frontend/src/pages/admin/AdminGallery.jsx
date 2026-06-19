@@ -95,15 +95,15 @@ const AdminGallery = () => {
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between">
                 <div className="mb-4 md:mb-0">
                     <h3 className="text-lg font-bold text-gray-900">Upload New Photo</h3>
-                    <p className="text-sm text-gray-500">Supported formats: JPG, PNG, WEBP (Max 10MB)</p>
+                    <p className="text-sm text-gray-500">Supported formats: JPG, PNG, WEBP, HEIC, MP4, MOV (Max 50MB)</p>
                 </div>
                 <div className="relative overflow-hidden inline-block">
                     <button className="bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center hover:bg-gray-800 transition-colors pointer-events-none">
-                        {uploadingImage ? 'Uploading...' : <><Plus className="w-5 h-5 mr-2" /> Upload Photo</>}
+                        {uploadingImage ? 'Uploading...' : <><Plus className="w-5 h-5 mr-2" /> Upload Media</>}
                     </button>
                     <input 
                         type="file" 
-                        accept="image/*" 
+                        accept="image/*,video/*,.heic" 
                         onChange={handleImageUpload}
                         disabled={uploadingImage}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-wait"
@@ -114,7 +114,11 @@ const AdminGallery = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {images.map((img) => (
                     <div key={img.id} className="relative group rounded-2xl overflow-hidden border border-gray-200 shadow-sm aspect-square bg-gray-100">
-                        <img src={img.imageUrl} alt="Gallery item" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        {img.imageUrl.toLowerCase().endsWith('.mp4') || img.imageUrl.toLowerCase().endsWith('.mov') || img.imageUrl.toLowerCase().endsWith('.webm') ? (
+                            <video src={img.imageUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" autoPlay muted loop playsInline />
+                        ) : (
+                            <img src={img.imageUrl} alt="Gallery item" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                        )}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <button 
                                 onClick={() => handleDelete(img.id)}

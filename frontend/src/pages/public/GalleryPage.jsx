@@ -80,7 +80,11 @@ const GalleryPage = () => {
                         <div className="columns-2 md:columns-3 lg:columns-4 gap-1 md:gap-2">
                             {gallery.map((img) => (
                                 <div key={img.id} className="mb-1 md:mb-2 relative rounded-2xl overflow-hidden shadow-sm group break-inside-avoid">
-                                    <img src={img.imageUrl} alt="Gallery item" className="w-full h-auto object-cover bg-gray-200 group-hover:scale-105 transition-transform duration-700" />
+                                    {img.imageUrl.toLowerCase().endsWith('.mp4') || img.imageUrl.toLowerCase().endsWith('.mov') || img.imageUrl.toLowerCase().endsWith('.webm') ? (
+            <video src={img.imageUrl} className="w-full h-auto object-cover bg-gray-200 group-hover:scale-105 transition-transform duration-700" autoPlay muted loop playsInline />
+        ) : (
+            <img src={img.imageUrl} alt="Gallery item" className="w-full h-auto object-cover bg-gray-200 group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+        )}
                                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 </div>
                             ))}

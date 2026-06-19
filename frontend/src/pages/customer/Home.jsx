@@ -980,6 +980,23 @@ const Home = () => {
                             </div>
                             <h4 className="text-[13px] sm:text-sm md:text-base font-bold text-gray-800 text-center tracking-tight">Rewards</h4>
                         </div>
+
+                        {/* Refer Card */}
+                        <div 
+                            onClick={() => {
+                                if (user) {
+                                    navigate('/referrals');
+                                } else {
+                                    setShowLoginPopup(true);
+                                }
+                            }}
+                            className="flex flex-col items-center shrink-0 cursor-pointer group snap-start"
+                        >
+                            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 transition-all flex items-center justify-center mb-2">
+                                <img src="/reffer.png" alt="Refer" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md" loading="lazy" onError={(e) => { e.target.onerror = null; e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='18' cy='5' r='3'%3E%3C/circle%3E%3Ccircle cx='6' cy='12' r='3'%3E%3C/circle%3E%3Ccircle cx='18' cy='19' r='3'%3E%3C/circle%3E%3Cline x1='8.59' y1='13.51' x2='15.42' y2='17.49'%3E%3C/line%3E%3Cline x1='15.41' y1='6.51' x2='8.59' y2='10.49'%3E%3C/line%3E%3C/svg%3E"; e.target.className = "w-1/2 h-1/2 object-contain opacity-50"; }} />
+                            </div>
+                            <h4 className="text-[13px] sm:text-sm md:text-base font-bold text-gray-800 text-center tracking-tight">Refer</h4>
+                        </div>
                     </div>
                 </div>
             </section>

@@ -21,10 +21,10 @@ const Menus = () => {
         parcelCharges: 0,
         imageUrl: '',
         status: 'active',
-        category: 'Lunch',
+        category: '',
         foodType: 'veg',
         isTodaysSpecial: false,
-        isAddon: false,
+        
         newCategoryName: ''
     });
 
@@ -160,10 +160,10 @@ const Menus = () => {
             parcelCharges: item.parcelCharges || 0,
             imageUrl: item.imageUrl || '',
             status: item.status || 'active',
-            category: item.category || 'Lunch',
+            category: item.category || '',
             foodType: item.foodType || 'veg',
             isTodaysSpecial: item.isTodaysSpecial || false,
-            isAddon: item.isAddon || false,
+            
             newCategoryName: ''
         });
         setEditingId(item.id);
@@ -187,7 +187,7 @@ const Menus = () => {
                     <button 
                         onClick={() => {
                             setEditingId(null);
-                            setFormData({ name: '', description: '', price: 0, parcelCharges: 0, imageUrl: '', status: 'active', category: 'Lunch', foodType: 'veg', isTodaysSpecial: false, isAddon: false,
+                            setFormData({ name: '', description: '', price: 0, parcelCharges: 0, imageUrl: '', status: 'active', category: '', foodType: 'veg', isTodaysSpecial: false, 
         newCategoryName: '' });
                             setIsModalOpen(true);
                         }}
@@ -308,7 +308,7 @@ const Menus = () => {
                     <button 
                         onClick={() => {
                             setEditingId(null);
-                            setFormData({ name: '', description: '', price: 0, parcelCharges: 0, imageUrl: '', status: 'active', category: categories[0]?.id || 'Lunch', foodType: 'veg', isTodaysSpecial: false, isAddon: false,
+                            setFormData({ name: '', description: '', price: 0, parcelCharges: 0, imageUrl: '', status: 'active', category: '', foodType: 'veg', isTodaysSpecial: false, 
         newCategoryName: '' });
                             setIsModalOpen(true);
                         }}
@@ -333,15 +333,21 @@ const Menus = () => {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Item Image</label>
                                 <div className="flex items-center space-x-4">
-                                    {formData.imageUrl && <img src={formData.imageUrl} alt="Preview" className="w-16 h-16 object-cover rounded-lg" />}
-                                    <input 
-                                        type="file" 
-                                        accept="image/*" 
-                                        onChange={handleImageUpload} 
-                                        className="text-sm" 
-                                        disabled={uploadingImage}
-                                    />
-                                    {uploadingImage && <span className="text-xs text-blue-500">Uploading...</span>}
+                                    {formData.imageUrl && <img src={formData.imageUrl} alt="Preview" className="w-16 h-16 object-cover rounded-lg shadow-sm border border-gray-200" />}
+                                    <div className="flex-1 relative">
+                                        <input 
+                                            type="file" 
+                                            accept="image/*" 
+                                            onChange={handleImageUpload} 
+                                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100 transition-all cursor-pointer border border-gray-200 rounded-lg bg-gray-50" 
+                                            disabled={uploadingImage}
+                                        />
+                                        {uploadingImage && (
+                                            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                                                <span className="text-xs font-bold text-orange-600 animate-pulse">Uploading...</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             
@@ -359,6 +365,7 @@ const Menus = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                                     <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:ring-black focus:border-black">
+                                        <option value="" disabled>Select Category</option>
                                         {categories.map(cat => (
                                             <option key={cat.id} value={cat.name}>{cat.name}</option>
                                         ))}
@@ -418,18 +425,7 @@ const Menus = () => {
                                         Mark as "Today's Special"
                                     </label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <input 
-                                        type="checkbox" 
-                                        id="isAddon" 
-                                        checked={formData.isAddon} 
-                                        onChange={e => setFormData({...formData, isAddon: e.target.checked})} 
-                                        className="w-4 h-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
-                                    />
-                                    <label htmlFor="isAddon" className="text-sm font-medium text-gray-700 cursor-pointer">
-                                        Available as Add-on in Subscription Booking
-                                    </label>
-                                </div>
+                                
                             </div>
                             
                             <div className="pt-4 flex justify-end">

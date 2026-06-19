@@ -324,7 +324,11 @@ const LandingPage = () => {
                                 <div className="columns-2 md:columns-4 gap-1 md:gap-2">
                                     {gallery.slice(0, 8).map((img, i) => (
                                         <div key={img.id} className="mb-1 md:mb-2 relative rounded-2xl overflow-hidden shadow-sm group bg-gray-100 break-inside-avoid">
-                                            <img src={img.imageUrl} alt="Gallery" className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out" />
+                                            {img.imageUrl.toLowerCase().endsWith('.mp4') || img.imageUrl.toLowerCase().endsWith('.mov') || img.imageUrl.toLowerCase().endsWith('.webm') ? (
+            <video src={img.imageUrl} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out" autoPlay muted loop playsInline />
+        ) : (
+            <img src={img.imageUrl} alt="Gallery" className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out" loading="lazy" />
+        )}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                         </div>
                                     ))}

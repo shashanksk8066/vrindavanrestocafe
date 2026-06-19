@@ -49,6 +49,16 @@ const Plans = () => {
         fetchPlans();
     }, []);
 
+    useEffect(() => {
+        if (subscriptionCategories.length > 0 && isModalOpen && !editingId) {
+            const isValid = subscriptionCategories.some(c => c.name === formData.mealType);
+            if (!isValid) {
+                setFormData(prev => ({ ...prev, mealType: subscriptionCategories[0].name }));
+            }
+        }
+    }, [subscriptionCategories, isModalOpen, formData.mealType, editingId]);
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
