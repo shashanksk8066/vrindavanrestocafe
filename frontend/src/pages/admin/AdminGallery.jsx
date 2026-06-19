@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../config/firebase';
-import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { Trash2, Image as ImageIcon, Plus } from 'lucide-react';
 import useAuthStore from '../../store/useAuthStore';
 
@@ -65,6 +65,18 @@ const AdminGallery = () => {
         }
     };
 
+    
+    const toggleShowOnHome = async (id, currentStatus) => {
+        try {
+            await updateDoc(doc(db, 'gallery', id), {
+                showOnHome: !currentStatus
+            });
+            fetchImages();
+        } catch (error) {
+            console.error("Error updating image", error);
+        }
+    };
+
     const handleDelete = async (id) => {
         if (!window.confirm("Delete this image?")) return;
         try {
@@ -119,14 +131,28 @@ const AdminGallery = () => {
                         ) : (
                             <img src={img.imageUrl} alt="Gallery item" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                         )}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center space-y-3">
+                            <button 
+                                onClick={() => toggleShowOnHome(img.id, img.showOnHome)}
+                                className={`px-4 py-2 rounded-full font-bold text-sm shadow-lg transition-all ${img.showOnHome ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-white text-gray-800 hover:bg-gray-100'}`}
+                            >
+                                {img.showOnHome ? '✓ Shown on Home' : 'Show on Home'}
+                            </button>
                             <button 
                                 onClick={() => handleDelete(img.id)}
                                 className="bg-white text-red-600 p-3 rounded-full hover:bg-red-50 hover:scale-110 transition-all shadow-lg"
+                                title="Delete"
                             >
                                 <Trash2 className="w-5 h-5" />
                             </button>
                         </div>
+                        {/* Persistent badge if shown on home */}
+                        {img.showOnHome && (
+                            <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                                HOME
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>

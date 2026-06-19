@@ -42,9 +42,15 @@ const LandingPage = () => {
                 setReviews(reviewData);
 
                 // Fetch Gallery
-                const gallerySnap = await getDocs(query(collection(db, 'gallery'), orderBy('createdAt', 'desc'), limit(8)));
-                const galleryData = [];
-                gallerySnap.forEach(doc => galleryData.push({ id: doc.id, ...doc.data() }));
+                const gallerySnap = await getDocs(query(collection(db, 'gallery'), orderBy('createdAt', 'desc')));
+                let galleryData = [];
+                gallerySnap.forEach(doc => {
+                    const data = doc.data();
+                    if (data.showOnHome) {
+                        galleryData.push({ id: doc.id, ...data });
+                    }
+                });
+                galleryData = galleryData.slice(0, 8);
                 setGallery(galleryData);
 
             } catch (error) {

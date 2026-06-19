@@ -110,16 +110,14 @@ const Home = () => {
 
                 // Fetch Gallery
                 const gallerySnap = await getDocs(query(collection(db, 'gallery'), orderBy('createdAt', 'desc')));
-                const galleryData = [];
+                let galleryData = [];
                 gallerySnap.forEach(doc => {
                     const data = doc.data();
-                    if (data.imageUrl && typeof data.imageUrl === 'string' && data.imageUrl.trim() !== '') {
-                        if (data.imageUrl.includes('ngrok-free.app')) {
-                            } else if (data.imageUrl.includes('localhost')) {
-                            }
+                    if (data.showOnHome) {
                         galleryData.push({ id: doc.id, ...data });
                     }
                 });
+                galleryData = galleryData.slice(0, 8);
                 setGallery(galleryData);
 
                 // Fetch categories
@@ -1065,12 +1063,11 @@ const Home = () => {
                         <div className="columns-2 md:columns-4 gap-1 md:gap-2">
                             {gallery.map((img, i) => (
                                 <div key={img.id} className="mb-1 md:mb-2 relative rounded-2xl overflow-hidden shadow-sm group bg-gray-100 break-inside-avoid">
-                                    <img 
-                                        src={img.imageUrl} 
-                                        alt="Gallery" 
-                                        className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out" 
-                                        onError={(e) => { e.target.closest('.group').style.display = 'none'; }}
-                                    />
+                                    {img.imageUrl.toLowerCase().endsWith('.mp4') || img.imageUrl.toLowerCase().endsWith('.mov') || img.imageUrl.toLowerCase().endsWith('.webm') ? (
+                                        <video src={img.imageUrl} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out" autoPlay muted loop playsInline />
+                                    ) : (
+                                        <img src={img.imageUrl} alt="Gallery" className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out" onError={(e) => { if(e.target.closest) { const g = e.target.closest('.group'); if(g) g.style.display = 'none'; } }} loading="lazy" />
+                                    )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                 </div>
                             ))}
