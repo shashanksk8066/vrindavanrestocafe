@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../config/firebase';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { Plus, Edit2, Trash2, X, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Image as ImageIcon, Power } from 'lucide-react';
 import useAuthStore from '../../store/useAuthStore';
 
 const Categories = () => {
@@ -109,6 +109,19 @@ const Categories = () => {
         }
     };
 
+    
+    const handleToggleStatus = async (e, category) => {
+        e.stopPropagation();
+        try {
+            const newStatus = category.status === 'active' ? 'inactive' : 'active';
+            const collectionName = activeTab === 'subscriptionMenu' ? 'subscriptionCategories' : 'categories';
+            await updateDoc(doc(db, collectionName, category.id), { status: newStatus });
+            setCategories(categories.map(c => c.id === category.id ? { ...c, status: newStatus } : c));
+        } catch (error) {
+            console.error("Error updating category status", error);
+        }
+    };
+
     const openEdit = (category) => {
         setFormData({
             name: category.name || '',
@@ -172,6 +185,13 @@ const Categories = () => {
                             <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button onClick={() => openEdit(cat)} className="p-2 bg-white rounded-lg shadow text-blue-600 hover:text-blue-800">
                                     <Edit2 className="h-4 w-4" />
+                                </button>
+                                <button 
+                                    onClick={(e) => handleToggleStatus(e, cat)} 
+                                    title={cat.status === 'active' ? 'Mark Inactive' : 'Mark Active'}
+                                    className={`p-2 bg-white rounded-lg shadow ${cat.status === 'active' ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    <Power className="h-4 w-4" />
                                 </button>
                                 <button onClick={() => handleDelete(cat.id)} className="p-2 bg-white rounded-lg shadow text-red-600 hover:text-red-800">
                                     <Trash2 className="h-4 w-4" />

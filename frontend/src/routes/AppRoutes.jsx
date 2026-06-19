@@ -24,6 +24,7 @@ const AdminFreeFoods = React.lazy(() => import('../pages/admin/FreeFoods'));
 const AdminSettings = React.lazy(() => import('../pages/admin/Settings'));
 const AdminReferrals = React.lazy(() => import('../pages/admin/AdminReferrals'));
 const AdminSubscriptionBookings = React.lazy(() => import('../pages/admin/SubscriptionBookings'));
+const AdminSubscriptionEnrollments = React.lazy(() => import('../pages/admin/AdminSubscriptionEnrollments'));
 const AdminInstantOrders = React.lazy(() => import('../pages/admin/InstantOrders'));
 const AdminReviews = React.lazy(() => import('../pages/admin/Reviews'));
 const AdminLiveOrders = React.lazy(() => import('../pages/admin/AdminLiveOrders'));
@@ -143,6 +144,7 @@ const AppRoutes = () => {
                     <Route path="rewards" element={<AdminRewards />} />
                     <Route path="free-foods" element={<AdminFreeFoods />} />
                     <Route path="subscription-bookings" element={<AdminSubscriptionBookings />} />
+                    <Route path="subscription-enrollments" element={<AdminSubscriptionEnrollments />} />
                     <Route path="instant-orders" element={<AdminInstantOrders />} />
                     <Route path="live-orders" element={<AdminLiveOrders />} />
                     <Route path="reviews" element={<AdminReviews />} />

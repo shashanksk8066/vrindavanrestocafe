@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../config/firebase';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { Plus, Edit2, Trash2, X, Image as ImageIcon, Settings2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Image as ImageIcon, Settings2, Search, Power } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
 
 const Menus = () => {
     const [activeTab, setActiveTab] = useState('subscriptionMenu'); // 'subscriptionMenu' or 'mainMenu'
     const [items, setItems] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -141,6 +142,18 @@ const Menus = () => {
         }
     };
 
+    
+    const handleToggleStatus = async (e, item) => {
+        e.stopPropagation();
+        try {
+            const newStatus = item.status === 'active' ? 'inactive' : 'active';
+            await updateDoc(doc(db, activeTab, item.id), { status: newStatus });
+            setItems(items.map(i => i.id === item.id ? { ...i, status: newStatus } : i));
+        } catch (error) {
+            console.error("Error updating status", error);
+        }
+    };
+
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this item?")) {
             try {
@@ -169,6 +182,8 @@ const Menus = () => {
         setEditingId(item.id);
         setIsModalOpen(true);
     };
+
+    const filteredItems = items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()) || (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase())));
 
     return (
         <div>
@@ -214,6 +229,21 @@ const Menus = () => {
                 </button>
             </div>
 
+            {/* Search Bar */}
+            <div className="mb-6 relative max-w-md">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                    type="text"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                    placeholder="Search menu items by name or category..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+
+
             {loading ? (
                 <div className="p-4 flex items-center justify-center text-gray-500 font-medium h-64">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mr-3"></div>
@@ -221,7 +251,7 @@ const Menus = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
-                    {items.map((item) => (
+                    {filteredItems.map((item) => (
                         <div key={item.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col relative">
                             {/* Status and Type Badges */}
                             <div className="absolute top-4 left-4 z-10 flex space-x-2">
@@ -284,6 +314,13 @@ const Menus = () => {
                                     >
                                         <Edit2 className="h-4 w-4 mr-2" />
                                         Edit
+                                    </button>
+                                    <button 
+                                        onClick={(e) => handleToggleStatus(e, item)} 
+                                        title={item.status === 'active' ? 'Mark Inactive' : 'Mark Active'}
+                                        className={`flex items-center justify-center font-semibold py-2.5 px-4 rounded-xl transition-colors border ${item.status === 'active' ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100' : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'}`}
+                                    >
+                                        <Power className="h-4 w-4" />
                                     </button>
                                     <button 
                                         onClick={() => handleDelete(item.id)} 

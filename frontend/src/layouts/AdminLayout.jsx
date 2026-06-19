@@ -23,7 +23,7 @@ import {
     Presentation,
     Image as ImageIcon,
     Gift
-} from 'lucide-react';
+, ClipboardList } from 'lucide-react';
 
 const AdminLayout = () => {
     const { logout } = useAuthStore();
@@ -45,6 +45,7 @@ const AdminLayout = () => {
         { name: 'Menu Items', href: '/admin/subscription-menu', icon: UtensilsCrossed },
         { name: 'Daily Schedule', href: '/admin/daily-schedule', icon: CalendarClock },
         { name: 'Sub Bookings', href: '/admin/subscription-bookings', icon: CalendarCheck2 },
+        { name: 'Enrollments', href: '/admin/subscription-enrollments', icon: ClipboardList },
         { name: 'Instant Orders', href: '/admin/instant-orders', icon: Zap },
         { name: 'Live Orders', href: '/admin/live-orders', icon: Radio },
         { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
