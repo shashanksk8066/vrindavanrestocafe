@@ -1,3 +1,4 @@
+import SEO from '../../components/SEO';
 import React, { useState } from 'react';
 import { ArrowLeft, Phone, Send, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -36,6 +37,12 @@ const Catering = () => {
     if (success) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+            <SEO 
+                title="Catering Services in Solladevanahalli" 
+                description="Professional catering services for your events in Bangalore. Best vegetarian catering near Acharya College."
+                canonical="/catering"
+                keywords="Catering Services, Veg Catering Near Me, Wedding Catering, Event Catering"
+            />
                 <CheckCircle className="w-20 h-20 text-green-500 mb-6" />
                 <h2 className="text-3xl font-black text-gray-900 mb-2">Request Received!</h2>
                 <p className="text-gray-600 text-center max-w-md mb-8">

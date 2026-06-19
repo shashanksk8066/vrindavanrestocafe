@@ -1,3 +1,4 @@
+import SEO from '../../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../config/firebase';
@@ -93,6 +94,12 @@ const LandingPage = () => {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <SEO 
+                title="Welcome to Vrindavan Resto Cafe" 
+                description="Vrindavan Resto Cafe is your destination for authentic South Indian and North Indian vegetarian food. Visit us near Acharya College, Solladevanahalli."
+                canonical="/welcome"
+                keywords="Vrindavan Resto Cafe, Best Cafe in Solladevanahalli, Restaurant Near Me"
+            />
                 <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
@@ -105,7 +112,7 @@ const LandingPage = () => {
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
                         <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.scrollTo(0,0)}>
-                            <img src="/logo.png" alt="Vrindavan Logo" className="h-20 w-20 object-contain scale-[2] origin-left ml-2 md:ml-4" />
+                            <img src="/logo.png" alt="Vrindavan Logo" className="h-20 w-20 object-contain scale-[2] origin-left ml-2 md:ml-4" loading="lazy" />
                         </div>
                         <div className="flex items-center space-x-4 md:space-x-8">
                             <a href="#about" className="text-sm font-bold text-gray-600 hover:text-orange-500 hidden md:block transition-colors">About Us</a>
@@ -192,7 +199,7 @@ const LandingPage = () => {
                                         className={`absolute inset-0 transition-all duration-1000 ${index === currentBannerIndex ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'}`}
                                     >
                                         <a href={banner.link || '#'} onClick={e => !banner.link && e.preventDefault()} className="block w-full h-full">
-                                            <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
+                                            <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" loading="lazy" />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                                         </a>
                                     </div>
@@ -222,7 +229,7 @@ const LandingPage = () => {
                             <div className="order-2 lg:order-1 relative">
                                 <div className="absolute -inset-4 bg-orange-50 rounded-[3rem] transform -rotate-3 -z-10 hidden md:block"></div>
                                 <div className="aspect-[4/5] rounded-[2rem] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.08)] relative">
-                                    <img src="/cafe.png" alt="Vrindavan Cafe" className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000" />
+                                    <img src="/cafe.png" alt="Vrindavan Cafe" className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000" loading="lazy" />
                                 </div>
                             </div>
                             <div className="order-1 lg:order-2">
@@ -364,7 +371,7 @@ const LandingPage = () => {
             <footer className="bg-[#FAFAFA] py-16 border-t border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
                     <div className="flex items-center space-x-2 mb-6 md:mb-0 w-full md:w-auto justify-center md:justify-start">
-                        <img src="/logo.png" alt="Vrindavan Logo" className="h-16 w-16 object-contain scale-[2] origin-left ml-2 md:ml-4" />
+                        <img src="/logo.png" alt="Vrindavan Logo" className="h-16 w-16 object-contain scale-[2] origin-left ml-2 md:ml-4" loading="lazy" />
                     </div>
                     <p className="text-gray-400 text-xs font-medium tracking-wide w-full md:w-auto text-center md:text-right">© {new Date().getFullYear()} Vrindavan. All rights reserved.</p>
                 </div>

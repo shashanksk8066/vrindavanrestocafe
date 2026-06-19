@@ -1,3 +1,4 @@
+import SEO from '../../components/SEO';
 import React, { useEffect } from 'react';
 import { ArrowLeft, ShieldCheck, Heart, Leaf, Utensils, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +13,12 @@ const AboutUs = () => {
 
     return (
         <div className="pb-24 font-sans bg-white min-h-screen">
+            <SEO 
+                title="About Vrindavan Resto Cafe" 
+                description="Learn about our journey to bring the best vegetarian culinary experience to Solladevanahalli."
+                canonical="/about"
+                keywords="About Vrindavan Resto Cafe, Best Vegetarian Restaurant Near Me"
+            />
             {/* Header Area */}
             <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md px-4 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center">
@@ -23,7 +30,7 @@ const AboutUs = () => {
                     </button>
                     <h1 className="text-xl font-black text-gray-900 tracking-tight">About Us</h1>
                 </div>
-                <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
+                <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" loading="lazy" />
             </div>
 
             {/* Hero Image Section */}
@@ -32,7 +39,7 @@ const AboutUs = () => {
                     src="/cafe.png" 
                     alt="Vrindavan Cafe" 
                     className="w-full h-full object-cover opacity-60 hover:scale-105 transition-transform duration-1000"
-                />
+                loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
                     <p className="text-orange-400 font-bold tracking-[0.2em] uppercase text-xs mb-2">Our Story</p>

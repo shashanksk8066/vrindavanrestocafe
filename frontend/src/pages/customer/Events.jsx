@@ -1,3 +1,4 @@
+import SEO from '../../components/SEO';
 import React, { useState } from 'react';
 import { ArrowLeft, Phone, Send, CheckCircle, CalendarDays, Clock, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +40,12 @@ const Events = () => {
     if (success) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
+            <SEO 
+                title="Book Event Space - Vrindavan Resto Cafe" 
+                description="Book our beautiful cafe for your private events, parties, and corporate gatherings near Acharya College."
+                canonical="/events"
+                keywords="Event Space Near Me, Party Hall Solladevanahalli, Birthday Party Venue"
+            />
                 <CheckCircle className="w-20 h-20 text-green-500 mb-6" />
                 <h2 className="text-3xl font-black text-gray-900 mb-2">Booking Requested!</h2>
                 <p className="text-gray-600 text-center max-w-md mb-8">

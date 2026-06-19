@@ -1,3 +1,4 @@
+import { getFirebaseErrorMessage } from '../../utils/firebaseErrorHandler';
 import { useState, useEffect, useCallback } from 'react';
 import { db, firebaseConfig } from '../../config/firebase';
 import { collection, query, where, getDocs, setDoc, doc, getDoc } from 'firebase/firestore';
@@ -23,6 +24,7 @@ const Deliveries = () => {
     const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '' });
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const fetchData = useCallback(async () => {
         setLoading(true);

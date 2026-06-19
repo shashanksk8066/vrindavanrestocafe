@@ -1,3 +1,4 @@
+import { getFirebaseErrorMessage } from '../utils/firebaseErrorHandler';
 import { create } from 'zustand';
 import { auth, db } from '../config/firebase';
 import { 
@@ -16,6 +17,7 @@ const useAuthStore = create((set) => ({
     loading: false,
     isAuthReady: false,
     error: null,
+    setError: (msg) => set({ error: msg }),
 
     initAuth: () => {
         onAuthStateChanged(auth, async (firebaseUser) => {
@@ -81,7 +83,7 @@ const useAuthStore = create((set) => ({
 
             set({ user: user, userData: uData, role: userRole, loading: false });
         } catch (error) {
-            set({ error: error.message, loading: false });
+            set({ error: getFirebaseErrorMessage(error), loading: false });
             throw error;
         }
     },
@@ -124,7 +126,7 @@ const useAuthStore = create((set) => ({
             // Note: In a real app we might also hit the backend /api/auth/register
             
         } catch (error) {
-            set({ error: error.message, loading: false });
+            set({ error: getFirebaseErrorMessage(error), loading: false });
             throw error;
         }
     },
@@ -135,7 +137,7 @@ const useAuthStore = create((set) => ({
             await signOut(auth);
             set({ user: null, userData: null, role: null, loading: false });
         } catch (error) {
-            set({ error: error.message, loading: false });
+            set({ error: getFirebaseErrorMessage(error), loading: false });
         }
     },
 
@@ -145,7 +147,7 @@ const useAuthStore = create((set) => ({
             await sendPasswordResetEmail(auth, email);
             set({ loading: false });
         } catch (error) {
-            set({ error: error.message, loading: false });
+            set({ error: getFirebaseErrorMessage(error), loading: false });
             throw error;
         }
     }

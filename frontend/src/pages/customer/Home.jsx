@@ -1,3 +1,5 @@
+import SEO from '../../components/SEO';
+import { generateLocalBusinessSchema, generateOrganizationSchema } from '../../utils/seoSchemas';
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../../config/firebase';

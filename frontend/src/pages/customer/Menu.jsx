@@ -1,3 +1,5 @@
+import SEO from '../../components/SEO';
+import { generateMenuSchema } from '../../utils/seoSchemas';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../../config/firebase';

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
-import { User, Phone, Mail, Lock, UserPlus, Loader2 } from 'lucide-react';
+import { User, Phone, Mail, Lock, UserPlus, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const Signup = () => {
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [searchParams] = useSearchParams();
     const [referralCode, setReferralCode] = useState(searchParams.get('ref') || '');
     const { signup, error, loading } = useAuthStore();
@@ -61,7 +62,7 @@ const Signup = () => {
                                 <input
                                     type="text"
                                     required
-                                    className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 ease-in-out sm:text-sm"
+                                    className="block w-full pl-11 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 ease-in-out sm:text-sm"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="John Doe"
@@ -78,7 +79,7 @@ const Signup = () => {
                                 <input
                                     type="tel"
                                     required
-                                    className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 ease-in-out sm:text-sm"
+                                    className="block w-full pl-11 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 ease-in-out sm:text-sm"
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
                                     placeholder="10-digit mobile number"
@@ -95,7 +96,7 @@ const Signup = () => {
                                 <input
                                     type="email"
                                     required
-                                    className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 ease-in-out sm:text-sm"
+                                    className="block w-full pl-11 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 ease-in-out sm:text-sm"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="you@example.com"
@@ -110,13 +111,18 @@ const Signup = () => {
                                     <Lock className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     required
-                                    className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 ease-in-out sm:text-sm"
+                                    className="block w-full pl-11 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 ease-in-out sm:text-sm"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                 />
+                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 z-10 cursor-pointer">
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -128,7 +134,7 @@ const Signup = () => {
                                 </div>
                                 <input
                                     type="text"
-                                    className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 ease-in-out sm:text-sm uppercase placeholder:normal-case"
+                                    className="block w-full pl-11 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 ease-in-out sm:text-sm uppercase placeholder:normal-case"
                                     value={referralCode}
                                     onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
                                     placeholder="Enter code (if any)"

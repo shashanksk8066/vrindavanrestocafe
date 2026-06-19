@@ -1,3 +1,4 @@
+import SEO from '../../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../../config/firebase';
@@ -45,6 +46,12 @@ const GalleryPage = () => {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <SEO 
+                title="Our Gallery - Vrindavan Resto Cafe" 
+                description="View the stunning ambiance and delicious dishes at Vrindavan Resto Cafe. The best family restaurant in Solladevanahalli."
+                canonical="/gallery"
+                keywords="Restaurant Ambience, Cafe Gallery, Solladevanahalli Restaurant"
+            />
                 <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
@@ -57,7 +64,7 @@ const GalleryPage = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
                         <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.scrollTo(0,0)}>
-                            <img src="/logo.png" alt="Vrindavan Logo" className="h-16 w-16 object-contain scale-[1.5] origin-left ml-2 md:ml-4" />
+                            <img src="/logo.png" alt="Vrindavan Logo" className="h-16 w-16 object-contain scale-[1.5] origin-left ml-2 md:ml-4" loading="lazy" />
                         </div>
                         <Link 
                             to="/"
@@ -103,7 +110,7 @@ const GalleryPage = () => {
             <footer className="bg-white py-12 border-t border-gray-100 mt-auto">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                     <div className="flex items-center space-x-2">
-                        <img src="/logo.png" alt="Vrindavan Logo" className="h-10 w-10 object-contain scale-[1.5]" />
+                        <img src="/logo.png" alt="Vrindavan Logo" className="h-10 w-10 object-contain scale-[1.5]" loading="lazy" />
                         <span className="text-lg font-black tracking-tight text-gray-900 ml-2">VRINDAVAN</span>
                     </div>
                     <p className="text-gray-500 text-sm font-medium">© {new Date().getFullYear()} Vrindavan. All rights reserved.</p>

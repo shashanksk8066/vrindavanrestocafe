@@ -1,9 +1,10 @@
+import { getFirebaseErrorMessage } from '../../utils/firebaseErrorHandler';
 import { useState, useEffect, useCallback } from 'react';
 import { db, firebaseConfig } from '../../config/firebase';
 import { collection, query, where, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { UserPlus, Wallet, Phone, Mail, X, Loader2, Trash2 } from 'lucide-react';
+import { UserPlus, Wallet, Phone, Mail, X, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
 
 const AdminCashiers = () => {
     const [cashiers, setCashiers] = useState([]);
@@ -16,6 +17,7 @@ const AdminCashiers = () => {
     const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '' });
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -220,7 +222,7 @@ const AdminCashiers = () => {
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Password</label>
                                     <input
-                                        type="password"
+                                        type={showPassword ? 'text' : 'password'}
                                         required
                                         minLength={6}
                                         value={formData.password}
@@ -228,6 +230,11 @@ const AdminCashiers = () => {
                                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
                                         placeholder="Min 6 characters"
                                     />
+                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 z-10 cursor-pointer">
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
                                 </div>
                                 
                                 <button
