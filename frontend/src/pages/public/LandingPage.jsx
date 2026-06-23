@@ -16,6 +16,7 @@ const LandingPage = () => {
     const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
     const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [selectedMedia, setSelectedMedia] = useState(null);
 
     // Scale down UI for landing page (matches dashboard scale)
     useEffect(() => {
@@ -318,7 +319,7 @@ const LandingPage = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12">
                             <div>
-                                <p className="text-[10px] md:text-[11px] font-black tracking-[0.2em] uppercase text-orange-500 mb-2">From Our Kitchen</p>
+                                <p className="text-[10px] md:text-[11px] font-black tracking-[0.2em] uppercase text-orange-500 mb-2">Gallery</p>
                                 <h2 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">Gallery</h2>
                             </div>
                             {gallery.length > 8 && (
@@ -336,7 +337,7 @@ const LandingPage = () => {
                             <>
                                 <div className="columns-2 md:columns-4 gap-1 md:gap-2">
                                     {gallery.slice(0, 8).map((img, i) => (
-                                        <div key={img.id} className="mb-1 md:mb-2 relative rounded-2xl overflow-hidden shadow-sm group bg-gray-100 break-inside-avoid">
+                                        <div key={img.id} className="mb-1 md:mb-2 relative rounded-2xl overflow-hidden shadow-sm group bg-gray-100 break-inside-avoid cursor-pointer" onClick={() => setSelectedMedia(img.imageUrl)}>
                                             {img.imageUrl.toLowerCase().endsWith('.mp4') || img.imageUrl.toLowerCase().endsWith('.mov') || img.imageUrl.toLowerCase().endsWith('.webm') ? (
             <video src={img.imageUrl} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out" autoPlay muted loop playsInline />
         ) : (
@@ -376,7 +377,30 @@ const LandingPage = () => {
                     <p className="text-gray-400 text-xs font-medium tracking-wide w-full md:w-auto text-center md:text-right">© {new Date().getFullYear()} Vrindavan. All rights reserved.</p>
                 </div>
             </footer>
-        </div>
+        
+            {/* Lightbox Modal */}
+            {selectedMedia && (
+                <div 
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+                    onClick={() => setSelectedMedia(null)}
+                >
+                    <button 
+                        className="absolute top-6 right-6 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full p-2 transition-all z-10"
+                        onClick={(e) => { e.stopPropagation(); setSelectedMedia(null); }}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                    
+                    <div className="relative max-w-5xl max-h-[90vh] w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                        {selectedMedia.toLowerCase().endsWith('.mp4') || selectedMedia.toLowerCase().endsWith('.mov') || selectedMedia.toLowerCase().endsWith('.webm') ? (
+                            <video src={selectedMedia} className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl" autoPlay controls playsInline />
+                        ) : (
+                            <img src={selectedMedia} alt="Expanded Media" className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl" loading="lazy" />
+                        )}
+                    </div>
+                </div>
+            )}
+</div>
     );
 };
 

@@ -88,6 +88,7 @@ const CustomerRewards = () => {
                 usageLimit: '1',
                 userId: user.uid, // Only this user can use it
                 status: 'active',
+                applicableTo: 'all',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };

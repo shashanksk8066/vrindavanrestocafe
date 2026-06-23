@@ -9,6 +9,7 @@ import useAuthStore from '../../store/useAuthStore';
 import LoginPopup from '../../components/LoginPopup';
 
 const Home = () => {
+    const [selectedMedia, setSelectedMedia] = useState(null);
     const { user } = useAuthStore();
     const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
@@ -1052,7 +1053,7 @@ const Home = () => {
                 <section className="pt-0 pb-12 bg-transparent overflow-hidden relative">
                     <div className="max-w-7xl mx-auto px-4 md:px-0 mb-6 flex justify-between items-end">
                         <h3 className="text-xl font-black text-gray-900 flex items-center">
-                            From Our Kitchen
+                            Gallery
                         </h3>
                         {gallery.length > 4 && (
                             <Link to="/gallery" className="text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors flex items-center">
@@ -1064,7 +1065,7 @@ const Home = () => {
                     <div className="max-w-7xl mx-auto px-4 md:px-0">
                         <div className="columns-2 md:columns-4 gap-1 md:gap-2">
                             {gallery.map((img, i) => (
-                                <div key={img.id} className="mb-1 md:mb-2 relative rounded-2xl overflow-hidden shadow-sm group bg-gray-100 break-inside-avoid">
+                                <div key={img.id} className="mb-1 md:mb-2 relative rounded-2xl overflow-hidden shadow-sm group bg-gray-100 break-inside-avoid cursor-pointer" onClick={() => setSelectedMedia(img.imageUrl)}>
                                     {img.imageUrl.toLowerCase().endsWith('.mp4') || img.imageUrl.toLowerCase().endsWith('.mov') || img.imageUrl.toLowerCase().endsWith('.webm') ? (
                                         <video src={img.imageUrl} className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out" autoPlay muted loop playsInline />
                                     ) : (
@@ -1160,7 +1161,30 @@ const Home = () => {
                     </div>
                 </div>
             )}
-        </div>
+        
+            {/* Lightbox Modal */}
+            {selectedMedia && (
+                <div 
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+                    onClick={() => setSelectedMedia(null)}
+                >
+                    <button 
+                        className="absolute top-6 right-6 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full p-2 transition-all z-10"
+                        onClick={(e) => { e.stopPropagation(); setSelectedMedia(null); }}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                    
+                    <div className="relative max-w-5xl max-h-[90vh] w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                        {selectedMedia.toLowerCase().endsWith('.mp4') || selectedMedia.toLowerCase().endsWith('.mov') || selectedMedia.toLowerCase().endsWith('.webm') ? (
+                            <video src={selectedMedia} className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl" autoPlay controls playsInline />
+                        ) : (
+                            <img src={selectedMedia} alt="Expanded Media" className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl" loading="lazy" />
+                        )}
+                    </div>
+                </div>
+            )}
+</div>
     );
 };
 

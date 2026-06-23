@@ -129,7 +129,7 @@ const DineInCheckout = () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ couponCode: couponCodeInput.toUpperCase().trim(), sessionId: sid })
+                body: JSON.stringify({ couponCode: couponCodeInput.toUpperCase().trim(), sessionId: sid, orderType: 'dine-in' })
             });
             const data = await res.json();
             

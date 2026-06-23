@@ -158,7 +158,7 @@ const getPhonePeToken = async () => {
 
 const reserveCoupon = async (req, res) => {
     try {
-        const { couponCode, sessionId } = req.body;
+        const { couponCode, sessionId, orderType } = req.body;
         if (!couponCode || !sessionId) {
             return res.status(400).json({ success: false, message: 'Coupon code and session ID required' });
         }
@@ -176,6 +176,15 @@ const reserveCoupon = async (req, res) => {
             
             const coupon = doc.data();
             if (coupon.status !== 'active') throw new Error('Coupon is inactive');
+
+            // Check if coupon is applicable to this order type
+            if (orderType && coupon.applicableTo && coupon.applicableTo !== 'all' && coupon.applicableTo !== orderType) {
+                let friendlyType = coupon.applicableTo;
+                if (friendlyType === 'subscription') friendlyType = 'subscription plans';
+                if (friendlyType === 'instant') friendlyType = 'instant delivery orders';
+                if (friendlyType === 'dine-in') friendlyType = 'dine-in orders';
+                throw new Error(`This coupon is only applicable for ${friendlyType}.`);
+            }
 
             // If it has unlimited usage, no need to reserve. Just return success.
             if (coupon.usageLimit === undefined || coupon.usageLimit === '') {

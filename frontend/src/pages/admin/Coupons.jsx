@@ -82,7 +82,8 @@ const Coupons = () => {
             discount: coupon.discount,
             minOrderAmount: coupon.minOrderAmount,
             usageLimit: coupon.usageLimit || '',
-            status: coupon.status
+            status: coupon.status,
+            applicableTo: coupon.applicableTo || 'all'
         });
         setEditingId(coupon.id);
         setIsModalOpen(true);
@@ -100,7 +101,7 @@ const Coupons = () => {
                 <button 
                     onClick={() => {
                         setEditingId(null);
-                        setFormData({ code: '', type: 'flat', discount: 0, minOrderAmount: 0, usageLimit: '', status: 'active' });
+                        setFormData({ code: '', type: 'flat', discount: 0, minOrderAmount: 0, usageLimit: '', status: 'active', applicableTo: 'all' });
                         setIsModalOpen(true);
                     }}
                     className="flex items-center px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-amber-500/20 transition-all"
@@ -175,7 +176,7 @@ const Coupons = () => {
                     <button 
                         onClick={() => {
                             setEditingId(null);
-                            setFormData({ code: '', type: 'flat', discount: 0, minOrderAmount: 0, usageLimit: '', status: 'active' });
+                            setFormData({ code: '', type: 'flat', discount: 0, minOrderAmount: 0, usageLimit: '', status: 'active', applicableTo: 'all' });
                             setIsModalOpen(true);
                         }}
                         className="mt-6 inline-flex items-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-2.5 rounded-xl font-bold hover:shadow-lg transition-all"
@@ -264,16 +265,31 @@ const Coupons = () => {
                                 </div>
                             </div>
                             
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider text-[10px]">Status</label>
-                                <select 
-                                    value={formData.status} 
-                                    onChange={e => setFormData({...formData, status: e.target.value})} 
-                                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:ring-0 focus:border-amber-500 outline-none transition-colors font-semibold appearance-none"
-                                >
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider text-[10px]">Applicable To</label>
+                                    <select 
+                                        value={formData.applicableTo} 
+                                        onChange={e => setFormData({...formData, applicableTo: e.target.value})} 
+                                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:ring-0 focus:border-amber-500 outline-none transition-colors font-semibold appearance-none"
+                                    >
+                                        <option value="all">All Orders</option>
+                                        <option value="instant">Instant Orders</option>
+                                        <option value="subscription">Subscription Plans</option>
+                                        <option value="dine-in">Dine-In Orders</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider text-[10px]">Status</label>
+                                    <select 
+                                        value={formData.status} 
+                                        onChange={e => setFormData({...formData, status: e.target.value})} 
+                                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:ring-0 focus:border-amber-500 outline-none transition-colors font-semibold appearance-none"
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div className="pt-6 flex justify-end space-x-3 border-t border-gray-100">
