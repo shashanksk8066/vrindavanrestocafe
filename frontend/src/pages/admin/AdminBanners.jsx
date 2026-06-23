@@ -148,7 +148,7 @@ const AdminBanners = () => {
             ? { backgroundColor: banner.backgroundColor || '#FF8A00' }
             : {
                 backgroundImage: banner.imageUrl ? `url(${banner.imageUrl})` : 'none',
-                backgroundSize: 'cover',
+                backgroundSize: '100% 100%',
                 backgroundPosition: 'center',
                 backgroundColor: '#333'
             };

@@ -425,7 +425,7 @@ const Home = () => {
                             ? { backgroundColor: banner.backgroundColor || '#FF8A00' }
                             : {
                                 backgroundImage: banner.imageUrl ? `url(${banner.imageUrl})` : 'linear-gradient(to right, #f97316, #ef4444)',
-                                backgroundSize: 'cover',
+                                backgroundSize: '100% 100%',
                                 backgroundPosition: 'center'
                             };
 
@@ -489,7 +489,7 @@ const Home = () => {
                                             >
                                                 <Link 
                                                     to={banner.buttonLink || '#'} 
-                                                    className={`inline-flex items-center rounded-full font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 ${banner.buttonSize || 'px-4 py-2 md:px-6 md:py-3 text-xs md:text-sm'} ${banner.buttonFont || 'font-sans'}`}
+                                                    className={`inline-flex items-center rounded-full font-bold shadow-sm transition-transform hover:scale-105 active:scale-95 px-4 py-2 md:px-6 md:py-3 ${banner.buttonSize || 'text-xs md:text-sm'} ${banner.buttonFont || 'font-sans'}`}
                                                     style={{ backgroundColor: banner.buttonColor || '#FFFFFF', color: banner.buttonTextColor || '#EA580C' }}
                                                 >
                                                     {banner.buttonText} <ArrowRight className="ml-2 h-3 w-3 md:h-4 md:w-4" />
