@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../config/firebase';
-import { collection, query, getDocs, updateDoc, doc, orderBy } from 'firebase/firestore';
-import { Search, FileText, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { collection, query, getDocs, updateDoc, doc, orderBy, deleteDoc } from 'firebase/firestore';
+import { Search, FileText, CheckCircle, XCircle, Clock, Trash2 } from 'lucide-react';
 
 const AdminSubscriptionEnrollments = () => {
     const [subscriptions, setSubscriptions] = useState([]);
@@ -39,6 +39,19 @@ const AdminSubscriptionEnrollments = () => {
 
         fetchData();
     }, []);
+
+    const handleDelete = async (subId) => {
+        if (window.confirm('Are you sure you want to permanently delete this subscription enrollment? This action cannot be undone.')) {
+            try {
+                await deleteDoc(doc(db, 'subscriptions', subId));
+                setSubscriptions(prev => prev.filter(sub => sub.id !== subId));
+                alert('Subscription deleted successfully.');
+            } catch (error) {
+                console.error("Error deleting subscription:", error);
+                alert('Failed to delete subscription.');
+            }
+        }
+    };
 
     const filteredSubscriptions = subscriptions.filter(sub => {
         const user = usersMap[sub.userId];
@@ -119,6 +132,7 @@ const AdminSubscriptionEnrollments = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meals</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -156,12 +170,21 @@ const AdminSubscriptionEnrollments = () => {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {getStatusBadge(sub.status)}
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button 
+                                                onClick={() => handleDelete(sub.id)} 
+                                                className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors inline-flex items-center"
+                                                title="Delete Enrollment"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </td>
                                     </tr>
                                 );
                             })}
                             {filteredSubscriptions.length === 0 && (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                                         <FileText className="mx-auto h-8 w-8 text-gray-400 mb-2" />
                                         No enrollments found matching your criteria.
                                     </td>
