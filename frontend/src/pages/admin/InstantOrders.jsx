@@ -3,7 +3,7 @@ import { db } from '../../config/firebase';
 import { collection, query, getDocs, updateDoc, doc, getDoc, where } from 'firebase/firestore';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Calendar, Phone, MapPin, Download, Gift } from 'lucide-react';
+import { Calendar, Phone, MapPin, Download, Gift, Zap } from 'lucide-react';
 import { generateNumericId } from '../../utils/formatId';
 
 const AdminInstantOrders = () => {
@@ -87,7 +87,7 @@ const AdminInstantOrders = () => {
                 boysList.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            bookingsData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            bookingsData.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
             setBookings(bookingsData);
             setUsers(usersData);
             setAddresses(addressesData);
@@ -295,9 +295,15 @@ const AdminInstantOrders = () => {
     });
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-2xl font-bold text-gray-900">Instant Orders</h1>
+        <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+                <div>
+                    <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center">
+                        <Zap className="w-8 h-8 mr-3 text-amber-500" />
+                        Instant Orders
+                    </h1>
+                    <p className="text-gray-500 font-medium mt-1">Manage all instant delivery orders</p>
+                </div>
                 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
                     <div className="flex items-center space-x-2 bg-white px-3 py-2 rounded-xl border border-gray-200 w-full sm:w-auto">

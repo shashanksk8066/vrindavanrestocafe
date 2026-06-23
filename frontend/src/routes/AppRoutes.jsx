@@ -168,6 +168,7 @@ const AppRoutes = () => {
                 <Route path="cashier" element={<CashierLayout />}>
                     {/* Reusing AdminLiveOrders because it works perfectly for the cashier use case */}
                     <Route index element={<AdminLiveOrders />} />
+                    <Route path="instant-orders" element={<AdminInstantOrders />} />
                 </Route>
             </Route>
 

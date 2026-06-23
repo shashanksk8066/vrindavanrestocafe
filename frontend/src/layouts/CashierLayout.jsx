@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
-import { Radio, LogOut, Wallet } from 'lucide-react';
+import { Radio, LogOut, Wallet, Zap } from 'lucide-react';
 
 const CashierLayout = () => {
     const { logout, user } = useAuthStore();
@@ -31,6 +31,18 @@ const CashierLayout = () => {
                         >
                             <Radio className={`mr-3 h-5 w-5 flex-shrink-0 transition-transform ${location.pathname === '/cashier' ? 'text-white scale-110' : 'text-gray-400 group-hover:text-amber-500'}`} />
                             Live Orders
+                        </Link>
+
+                        <Link
+                            to="/cashier/instant-orders"
+                            className={`flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${
+                                location.pathname === '/cashier/instant-orders' 
+                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20' 
+                                    : 'text-gray-600 hover:bg-amber-50 hover:text-amber-700'
+                            }`}
+                        >
+                            <Zap className={`mr-3 h-5 w-5 flex-shrink-0 transition-transform ${location.pathname === '/cashier/instant-orders' ? 'text-white scale-110' : 'text-gray-400 group-hover:text-amber-500'}`} />
+                            Instant Orders
                         </Link>
                     </nav>
                 </div>

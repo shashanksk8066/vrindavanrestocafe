@@ -14,7 +14,7 @@ const AdminLiveOrders = () => {
     useEffect(() => {
         const q = query(
             collection(db, 'dineInOrders'),
-            orderBy('createdAt', 'desc')
+            orderBy('createdAt', 'asc')
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {

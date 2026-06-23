@@ -35,7 +35,7 @@ service cloud.firestore {
 
     // addresses collection
     match /addresses/{addressId} {
-      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin() || isDelivery());
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin() || isDelivery() || isCashier());
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
     }
@@ -56,8 +56,8 @@ service cloud.firestore {
 
     // subscriptionBookings collection
     match /subscriptionBookings/{bookingId} {
-      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin() || isDelivery());
-      allow update: if isAdmin() || 
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin() || isDelivery() || isCashier());
+      allow update: if isAdmin() || isCashier() || 
                     (isDelivery() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
                     (isAuth() && resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviewedItems']));
       allow write: if isAdmin();
@@ -72,7 +72,7 @@ service cloud.firestore {
     match /mainMenu/{menuId} {
       allow read: if true;
       // Allow customers to ONLY update the average rating and total ratings when they leave a review
-      allow update: if isAdmin() || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['averageRating', 'totalRatings']));
+      allow update: if isAdmin() || isCashier() || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['averageRating', 'totalRatings']));
       allow write: if isAdmin();
     }
     
@@ -119,8 +119,8 @@ service cloud.firestore {
 
     // instantOrders
     match /instantOrders/{orderId} {
-      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin() || isDelivery());
-      allow update: if isAdmin() || 
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isAdmin() || isDelivery() || isCashier());
+      allow update: if isAdmin() || isCashier() || 
                     (isDelivery() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
                     (isAuth() && resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviewedItems']));
       allow write: if isAdmin();
@@ -129,7 +129,7 @@ service cloud.firestore {
     // dineInOrders
     match /dineInOrders/{orderId} {
       allow read: if true;
-      allow update: if isAdmin() || isCashier();
+      allow update: if isAdmin() || isCashier() || isCashier();
       allow write: if isAdmin();
     }
     
